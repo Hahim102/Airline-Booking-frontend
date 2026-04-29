@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useState, useCallback, useEffect} from 'react';
 import apiClient, { setAuthStore } from '../api/client';
 
 export const AuthContext = createContext(null);
@@ -18,12 +18,14 @@ export const AuthProvider = ({ children }) => {
       const response = await apiClient.post('/auth/login', {
         email,
         password,
-      });
+      },);
 
       const { accessToken, roles } = response.data;
 
       setAccessToken(accessToken);
-      setUser({ roles });
+
+      const me = await apiClient.get('/auth/me',);
+      setUser(me.data);
 
       return { success: true };
     } catch (err) {
@@ -46,13 +48,16 @@ export const AuthProvider = ({ children }) => {
         fullName,
         phone,
         role: 'ROLE_USER', // Register as customer only
-        lastLoginAt: new Date().toISOString(),
-      });
+        lastLoginAt: new Date().toISOString()},
+    );
 
       const { accessToken, roles } = response.data;
 
       setAccessToken(accessToken);
-      setUser({ roles });
+
+      const me = await apiClient.get('/auth/me',);
+
+      setUser(me.data);
 
       return { success: true };
     } catch (err) {
@@ -65,19 +70,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 
-    const logout = useCallback(async () => {
+  const logout = useCallback(async () => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
       setAccessToken(null);
       setUser(null);
       setError(null);
-
-      try {
-        await apiClient.post('/auth/logout', {}, {
-          withCredentials: true,
-        });
-      } catch (err) {
-        console.error('Logout error:', err);
-      }
-    }, []);
+    }
+  }, []);
 
 
   const hasRole = useCallback((role) => {
@@ -86,21 +89,29 @@ export const AuthProvider = ({ children }) => {
 
 
   const hasAnyRole = useCallback((roles) => {
-    return roles.some(role => user?.roles?.includes(role)) || false;
+    return roles?.some(role => user?.roles?.includes(role)) || false;
   }, [user]);
-
 
   useEffect(() => {
     setAuthStore({
       accessToken,
       logout,
     });
-  }, [accessToken, logout]);
-
+  },[accessToken, logout]);
 
   useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await apiClient.get('/auth/me');
+        setUser(res.data);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    setIsLoading(false);
+    fetchMe();
   }, []);
 
   const value = {
@@ -113,7 +124,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     hasRole,
     hasAnyRole,
-    isAuthenticated: !!accessToken,
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

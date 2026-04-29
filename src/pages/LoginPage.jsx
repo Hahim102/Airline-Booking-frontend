@@ -2,10 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-/**
- * LoginPage
- * Form-based login with email and password
- */
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isLoading, error } = useAuth();
@@ -28,18 +24,13 @@ export const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.email || !formData.password) {
       setFormError('Email and password are required');
       return;
     }
-
-    // Call login
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
-      // Redirect based on role
-      // For demo, redirect to /user - in real app, you'd check roles
       navigate('/user');
     } else {
       setFormError(result.error);
@@ -49,7 +40,7 @@ export const LoginPage = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-5">
       <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-2 text-center text-sm font-bold text-blue-700">Airline Booking</h1>
+        <h1 className="mb-2 text-center text-sm font-bold text-blue-700">✈️ Airline Booking</h1>
         <h2 className="mb-7 text-center text-4xl font-bold text-slate-900">Sign In</h2>
 
         <form onSubmit={handleSubmit}>

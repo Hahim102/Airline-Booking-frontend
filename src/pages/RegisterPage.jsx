@@ -65,7 +65,7 @@ export const RegisterPage = () => {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4">
           <div className="text-sm font-bold text-blue-700">
             <span className="mr-1">✈️</span>
-            Skyline Operations
+            Airline Booking
           </div>
           <nav className="hidden gap-5 text-sm text-slate-500 md:flex">
             <a href="#registration" className="text-blue-700">Registration</a>

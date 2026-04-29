@@ -1,9 +1,6 @@
 import { useAuth } from '../hooks/useAuth';
 
-/**
- * UserPage
- * Accessible to: ROLE_USER
- */
+
 export const UserPage = () => {
   const { user } = useAuth();
 

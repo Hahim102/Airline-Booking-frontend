@@ -1,7 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
 
 @theme {
   --font-sans: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --color-primary: #0058be;
+  --color-primary-container: #2170e4;
+  --color-on-primary: #ffffff;
+  --color-secondary: #505f76;
+  --color-surface: #f7f9fb;
+  --color-surface-container: #eceef0;
+  --color-outline-variant: #c2c6d6;
+  --color-on-surface-variant: #424754;
+  --color-on-background: #191c1e;
+  --color-on-primary-container: #fefcff;
+  
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
 }
 
 @layer base {
@@ -14,4 +30,16 @@
   body {
     @apply m-0 bg-slate-100 font-sans text-slate-900;
   }
+}
+
+.glass-nav {
+  @apply bg-white/80 backdrop-blur-md border-b border-slate-200;
+}
+
+.hero-gradient {
+  background: linear-gradient(to right, rgba(15, 23, 42, 0.8), transparent);
+}
+
+.bento-card {
+  @apply bg-white p-8 rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-all duration-300;
 }
