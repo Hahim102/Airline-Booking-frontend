@@ -3,13 +3,14 @@ import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
-import { MyBookingsPage } from './pages/RegisterPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { HomePage } from './pages/HomePage';
+import { MyBookingsPage } from './pages/MyBookingsPage';
 import { UserPage } from './pages/UserPage';
 import { AdminPage } from './pages/AdminPage';
 import { AirlineOwnerPage } from './pages/AirlineOwnerPage';
 import { ForbiddenPage } from './pages/ForbiddenPage';
 import { ROLES } from './utils/roles';
-import './styles/global.css';
 
 /**
  * App Component
@@ -22,11 +23,11 @@ function App() {
         <Layout>
           <Routes>
             {/* Public Routes */}
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/bookings" element={<MyBookingsPage />} />
-            <Route path="/register" element={<MyBookingsPage />} />
             <Route path="/login" element={<LoginPage />} />
 
-            <Route path="/" element={<Navigate to="/bookings" replace />} />
+            <Route path="/" element={<HomePage />} />
             
 
             {/* Protected Routes */}
@@ -61,7 +62,7 @@ function App() {
             <Route path="/403" element={<ForbiddenPage />} />
 
             {/* Catch all - redirect to login */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
       </AuthProvider>

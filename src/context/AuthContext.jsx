@@ -22,9 +22,7 @@ export const AuthProvider = ({ children }) => {
 
       const { accessToken, roles } = response.data;
 
-      // Store token in state (memory only)
       setAccessToken(accessToken);
-      // Store user data
       setUser({ roles });
 
       return { success: true };
@@ -53,9 +51,7 @@ export const AuthProvider = ({ children }) => {
 
       const { accessToken, roles } = response.data;
 
-      // Store token in state (memory only)
       setAccessToken(accessToken);
-      // Store user data
       setUser({ roles });
 
       return { success: true };
@@ -69,21 +65,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 
-  const logout = useCallback(async () => {
-    setAccessToken(null);
-    setUser(null);
-    setError(null);
+    const logout = useCallback(async () => {
+      setAccessToken(null);
+      setUser(null);
+      setError(null);
 
-    try {
-      // Call logout endpoint to clear refresh token cookie
-      await apiClient.post('/auth/logout', {}, {
-        withCredentials: true,
-      });
-    } catch (err) {
-      console.error('Logout error:', err);
-      // Still clear local state even if endpoint fails
-    }
-  }, []);
+      try {
+        await apiClient.post('/auth/logout', {}, {
+          withCredentials: true,
+        });
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
+    }, []);
 
 
   const hasRole = useCallback((role) => {

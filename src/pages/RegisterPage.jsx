@@ -1,304 +1,185 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import '../styles/MyBookingsPage.css';
 
-/**
- * MyBookingsPage
- * - Accessible to: Customers (ROLE_USER) and guests
- * - For guests: Shows registration form to create account
- * - For customers: Shows their flight bookings and booking history
- */
-export const MyBookingsPage = () => {
-  const { isAuthenticated, register, isLoading, error } = useAuth();
+
+export const RegisterPage = () => {
+  const { register, isLoading, error } = useAuth();
   const navigate = useNavigate();
-  
-  const [showRegistration, setShowRegistration] = useState(!isAuthenticated);
-  const [registrationData, setRegistrationData] = useState({
-    fullName: '',
+
+  const [formData, setFormData] = useState({
     email: '',
+    fullName: '',
     phone: '',
     password: '',
     confirmPassword: '',
   });
-  const [registrationError, setRegistrationError] = useState('');
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [formError, setFormError] = useState('');
 
-  // Handle input changes for registration form
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setRegistrationData(prev => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
-    setRegistrationError('');
+    setFormError('');
   };
 
-  // Handle registration submission
-  const handleRegisterSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setRegistrationError('');
+    setFormError('');
 
     // Validation
-    if (!registrationData.fullName || !registrationData.email || !registrationData.phone || !registrationData.password) {
-      setRegistrationError('All fields are required');
+    if (!formData.fullName || !formData.email || !formData.phone || !formData.password) {
+      setFormError('All fields are required');
       return;
     }
 
-    if (registrationData.password !== registrationData.confirmPassword) {
-      setRegistrationError('Passwords do not match');
+    if (formData.password !== formData.confirmPassword) {
+      setFormError('Passwords do not match');
       return;
     }
 
-    if (registrationData.password.length < 6) {
-      setRegistrationError('Password must be at least 6 characters');
+    if (formData.password.length < 6) {
+      setFormError('Password must be at least 6 characters');
       return;
     }
 
-    // Call register function
     const result = await register(
-      registrationData.email,
-      registrationData.password,
-      registrationData.fullName,
-      registrationData.phone
+      formData.email,
+      formData.password,
+      formData.fullName,
+      formData.phone
     );
 
     if (result.success) {
-      setRegistrationSuccess(true);
-      setShowRegistration(false);
       navigate('/bookings', { replace: true });
     } else {
-      setRegistrationError(result.error || 'Registration failed');
+      setFormError(result.error || 'Registration failed');
     }
   };
 
-  if (!isAuthenticated && showRegistration) {
-    return (
-      <div className="register-page-shell">
-        <header className="register-topbar">
-          <div className="register-topbar-inner">
-            <div className="register-brand">Skyline Operations</div>
-            <nav className="register-nav-links">
-              <a href="#">Registration</a>
-              <a href="#">Help</a>
-              <a href="#">Contact</a>
-            </nav>
-          </div>
-        </header>
-
-        <main className="register-main">
-          <div className="register-card">
-            <div className="register-header">
-              <h1>Create Account</h1>
-              <p>Join Skyline Operations fleet management system</p>
-            </div>
-
-            <form onSubmit={handleRegisterSubmit} className="register-form">
-              <div className="form-group">
-                <label htmlFor="fullName">FULL NAME</label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={registrationData.fullName}
-                  onChange={handleInputChange}
-                  placeholder="John Doe"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">EMAIL ADDRESS</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={registrationData.email}
-                  onChange={handleInputChange}
-                  placeholder="dispatcher@skyline.com"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="phone">PHONE NUMBER</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={registrationData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+1 (555) 000-0000"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="password">PASSWORD</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={registrationData.password}
-                  onChange={handleInputChange}
-                  placeholder="********"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="confirmPassword">CONFIRM PASSWORD</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={registrationData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="********"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              {(registrationError || error) && (
-                <div className="error-message">
-                  {registrationError || error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="register-submit-btn"
-              >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
-            </form>
-
-            <div className="register-footer">
-              <p>
-                Already have an account? <Link to="/login">Sign in</Link>
-              </p>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Logged-in user view - show bookings
   return (
-    <div className="my-bookings-container">
-      {registrationSuccess && (
-        <div className="success-message">
-          ✓ Welcome! Your account has been created successfully. Loading your bookings...
+    <div className="min-h-screen bg-slate-100">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4">
+          <div className="text-sm font-bold text-blue-700">
+            <span className="mr-1">✈️</span>
+            Skyline Operations
+          </div>
+          <nav className="hidden gap-5 text-sm text-slate-500 md:flex">
+            <a href="#registration" className="text-blue-700">Registration</a>
+            <a href="#help">Help</a>
+            <a href="#contact">Contact</a>
+          </nav>
         </div>
-      )}
+      </header>
 
-      <div className="bookings-header">
-        <h1>My Bookings</h1>
-        <p>Manage your upcoming journeys and review past flight history</p>
-      </div>
+      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center p-4">
+        <div className="w-full max-w-xl rounded-xl border border-slate-200 bg-white p-7 shadow-sm">
+          <div className="mb-6 text-center">
+            <h1 className="text-5xl font-bold text-slate-900">Create Account</h1>
+          </div>
 
-      <div className="bookings-controls">
-        <button className="filter-btn">☰ Filter</button>
-        <button className="new-booking-btn">+ New Booking</button>
-      </div>
-
-      <div className="bookings-section">
-        <div className="bookings-tabs">
-          <button className="tab active">UPCOMING</button>
-          <button className="tab">COMPLETED</button>
-          <button className="tab">CANCELLED</button>
-        </div>
-
-        <div className="bookings-content">
-          <div className="booking-card">
-            <div className="booking-header">
-              <span className="booking-status upcoming">UPCOMING</span>
-              <span className="booking-id">Booking ID: #SC-98231</span>
-              <span className="departure-info">Departure in 2 days</span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="mb-2 block text-xs font-bold tracking-wide text-slate-700">EMAIL ADDRESS</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="username@gmail.com"
+                disabled={isLoading}
+                className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                required
+              />
             </div>
 
-            <div className="flight-info">
-              <div className="flight-route">
-                <h3>SFO</h3>
-                <p>SAN FRANCISCO</p>
-              </div>
-              <div className="flight-duration">
-                <p className="time">10:45 AM</p>
-                <div className="flight-line">
-                  <span className="plane-icon">✈</span>
-                </div>
-                <p className="duration">Flight SC-102 • 5h 20m</p>
-              </div>
-              <div className="flight-destination">
-                <h3>JFK</h3>
-                <p>NEW YORK</p>
-              </div>
-              <div className="arrival-time">
-                <p className="time">07:05 PM</p>
-              </div>
+            <div>
+              <label htmlFor="fullName" className="mb-2 block text-xs font-bold tracking-wide text-slate-700">FULL NAME</label>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="John Doe"
+                disabled={isLoading}
+                className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                required
+              />
             </div>
 
-            <div className="booking-details">
-              <div className="detail-item">
-                <span className="label">Gate</span>
-                <span className="value">B12</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Seat</span>
-                <span className="value">14A</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Terminal</span>
-                <span className="value">Intl 3</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Status</span>
-                <span className="value confirmed">Confirmed</span>
-              </div>
+
+            <div>
+              <label htmlFor="phone" className="mb-2 block text-xs font-bold tracking-wide text-slate-700">PHONE NUMBER</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="+84 000-000-0000"
+                disabled={isLoading}
+                className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                required
+              />
             </div>
 
-            <div className="booking-actions">
-              <button className="action-btn">Manage Seat</button>
-              <button className="action-btn primary">Download Ticket</button>
+            <div>
+              <label htmlFor="password" className="mb-2 block text-xs font-bold tracking-wide text-slate-700">PASSWORD</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                disabled={isLoading}
+                className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                required
+              />
             </div>
-          </div>
 
-          <div className="no-more-bookings">
-            <p>Showing 1 of 42 bookings</p>
+            <div>
+              <label htmlFor="confirmPassword" className="mb-2 block text-xs font-bold tracking-wide text-slate-700">CONFIRM PASSWORD</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="••••••••"
+                disabled={isLoading}
+                className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                required
+              />
+            </div>
+
+            {(formError || error) && (
+              <div className="rounded-md border-l-4 border-red-500 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {formError || error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="mt-1 h-11 w-full rounded-md bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoading ? 'Creating Account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <div className="mt-5 border-t border-slate-200 pt-4 text-center text-sm text-slate-500">
+            <p>
+              Already have an account? <Link to="/login" className="font-semibold text-blue-600 hover:underline">Sign in</Link>
+            </p>
           </div>
         </div>
-      </div>
-
-      <div className="travel-summary">
-        <h2>Travel Summary</h2>
-        <div className="summary-items">
-          <div className="summary-item">
-            <p className="summary-label">Miles Earned</p>
-            <p className="summary-value">24,502</p>
-          </div>
-          <div className="summary-item">
-            <p className="summary-label">Flights this year</p>
-            <p className="summary-value">12</p>
-          </div>
-          <div className="summary-item">
-            <p className="summary-label">Member Status</p>
-            <p className="summary-value elite">Platinum Elite</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="exclusive-offer">
-        <h2>Exclusive Lounge Access</h2>
-        <p>Enjoy premium amenities at JFK Terminal 4 during your layover.</p>
-        <button className="view-lounge-btn">View Lounge Map</button>
-      </div>
+      </main>
     </div>
   );
 };

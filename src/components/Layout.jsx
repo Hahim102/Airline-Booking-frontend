@@ -1,22 +1,20 @@
 import { useLocation } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { useAuth } from '../hooks/useAuth';
-import '../styles/Layout.css';
 
 
 export const Layout = ({ children }) => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
 
-  // Hide navbar for auth-focused pages and guest registration view.
-  const hideNavbarOnPaths = ['/login', '/register'];
+  const hideNavbarOnPaths = ['/', '/login', '/register'];
   const isGuestBookingsPage = location.pathname === '/bookings' && !isAuthenticated;
   const showNavbar = !hideNavbarOnPaths.includes(location.pathname) && !isGuestBookingsPage;
 
   return (
-    <div className="layout">
+    <div className="flex min-h-screen flex-col bg-slate-100">
       {showNavbar && <Navbar />}
-      <main className="main-content">
+      <main className="flex-1">
         {children}
       </main>
     </div>

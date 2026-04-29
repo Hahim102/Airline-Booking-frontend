@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// API base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Create axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -11,23 +9,18 @@ const apiClient = axios.create({
   },
 });
 
-// Store for auth context (will be set from context)
 let authStore = {
   accessToken: null,
   refreshToken: null,
   logout: null,
 };
 
-/**
- * Set auth store (called from AuthContext)
- */
+
 export const setAuthStore = (store) => {
   authStore = store;
 };
 
-/**
- * Request interceptor: Attach access token to requests
- */
+
 apiClient.interceptors.request.use(
   (config) => {
     if (authStore.accessToken) {
@@ -40,9 +33,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-/**
- * Response interceptor: Handle 401 and refresh token
- */
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
