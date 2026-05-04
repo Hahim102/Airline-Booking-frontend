@@ -1,5 +1,5 @@
 import { createContext, useState, useCallback, useEffect} from 'react';
-import apiClient, { setAuthStore } from '../api/client';
+import apiClient, { setAuthStore } from '../api/apiClient';
 
 export const AuthContext = createContext(null);
 
@@ -15,17 +15,21 @@ export const AuthProvider = ({ children }) => {
     setError(null);
 
     try {
+
       const response = await apiClient.post('/auth/login', {
         email,
         password,
       },);
 
-      const { accessToken, roles } = response.data;
 
-      setAccessToken(accessToken);
+      const { token, role } = response.data;
 
-      const me = await apiClient.get('/auth/me',);
-      setUser(me.data);
+      setAccessToken(token);
+
+      setAuthStore({
+        accessToken: token,
+        logout,
+      });
 
       return { success: true };
     } catch (err) {
@@ -47,15 +51,17 @@ export const AuthProvider = ({ children }) => {
         password,
         fullName,
         phone,
-        role: 'ROLE_USER', // Register as customer only
-        lastLoginAt: new Date().toISOString()},
-    );
+      });
 
-      const { accessToken, roles } = response.data;
 
-      setAccessToken(accessToken);
+      console.log(response.data);
 
-      const me = await apiClient.get('/auth/me',);
+      const { token, role } = response.data;
+
+      setAccessToken(token);
+
+
+      const me = await apiClient.get('/users/me',);
 
       setUser(me.data);
 
@@ -84,12 +90,12 @@ export const AuthProvider = ({ children }) => {
 
 
   const hasRole = useCallback((role) => {
-    return user?.roles?.includes(role) || false;
+    return user?.role?.includes(role) || false;
   }, [user]);
 
 
   const hasAnyRole = useCallback((roles) => {
-    return roles?.some(role => user?.roles?.includes(role)) || false;
+    return roles?.some(role => user?.role?.includes(role)) || false;
   }, [user]);
 
   useEffect(() => {
@@ -99,11 +105,38 @@ export const AuthProvider = ({ children }) => {
     });
   },[accessToken, logout]);
 
+
+
   useEffect(() => {
+    if (!accessToken) return;
+
     const fetchMe = async () => {
       try {
-        const res = await apiClient.get('/auth/me');
-        setUser(res.data);
+        const meRes = await apiClient.get('/users/me');
+        setUser(meRes.data);
+      } catch (err) {
+        setUser(null);
+      }
+    };
+
+    fetchMe();
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) return;
+
+    const fetchMe = async () => {
+      try {
+        const refreshRes = await apiClient.post("/auth/refresh");
+        const token = refreshRes.data.token;
+
+        setAccessToken(token);
+
+        setAuthStore({
+          accessToken: token,
+          logout,
+        });
+
       } catch (err) {
         setUser(null);
       } finally {
@@ -124,7 +157,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     hasRole,
     hasAnyRole,
-    isAuthenticated: !!user,
+    isAuthenticated: !!accessToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

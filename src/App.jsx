@@ -23,8 +23,8 @@ function App() {
         <Layout>
           <Routes>
             {/* Public Routes */}
-            <Route path="/register" element={<RegisterPage />} />
             <Route path="/bookings" element={<MyBookingsPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
 
             <Route path="/" element={<HomePage />} />
@@ -60,8 +60,6 @@ function App() {
 
             {/* Error Routes */}
             <Route path="/403" element={<ForbiddenPage />} />
-
-            {/* Catch all - redirect to login */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

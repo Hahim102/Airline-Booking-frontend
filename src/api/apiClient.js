@@ -7,7 +7,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Include httpOnly cookies
+  withCredentials: true,
 });
 
 let authStore = {
@@ -39,23 +39,23 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    // If error is 401 and we haven't already retried this request
+    
     if (error.response?.status === 401 &&
        !originalRequest?._retry &&
-       !originalRequest.url.includes('/auth/refresh')) {
+       !originalRequest.url.includes('/auth/refresh') &&
+        authStore.accessToken) {
       originalRequest._retry = true;
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
-          withCredentials: true, // Include httpOnly cookies
+        const response = await apiClient.post('/auth/refresh', {}, {
+          withCredentials: true,
         });
 
-        const { accessToken } = response.data;
+        const { token } = response.data;
 
-        authStore.accessToken = accessToken;
+        authStore.accessToken = token;
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`;
 
         return apiClient(originalRequest);
       } catch (refreshError) {
