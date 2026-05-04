@@ -19,7 +19,7 @@ export const Navbar = () => {
         <div className="flex items-center">
           <h2 className="m-0 text-xl font-bold text-slate-800">
             <span className="mr-1">✈️</span>
-            SkyStream Operations
+            Airline Booking
           </h2>
         </div>
 

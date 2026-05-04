@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const UserPage = () => {
   const { user } = useAuth();
+  
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
@@ -16,7 +17,7 @@ export const UserPage = () => {
           <div className="mb-4">
             <h3 className="mb-2 text-lg font-semibold text-slate-800">Your Roles:</h3>
             <ul className="list-disc space-y-1 pl-5 text-slate-700">
-              {user?.roles?.map((role) => (
+              {[user?.role].map((role) => (
                 <li key={role}>{role}</li>
               ))}
             </ul>

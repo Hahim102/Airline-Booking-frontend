@@ -1,10 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-/**
- * ForbiddenPage (403)
- * Shown when user is authenticated but lacks required role
- */
+
 export const ForbiddenPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();

@@ -6,7 +6,7 @@ export const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
 
@@ -22,14 +22,21 @@ export const AuthProvider = ({ children }) => {
       },);
 
 
-      const { token, role } = response.data;
+      console.log("🔥 LOGIN RESPONSE:", response.data);
+
+      const { token, user } = response.data;
+
+      console.log("🔥 ROLE:", user.role);
 
       setAccessToken(token);
+
+      setUser(user);
 
       setAuthStore({
         accessToken: token,
         logout,
       });
+
 
       return { success: true };
     } catch (err) {
@@ -56,9 +63,16 @@ export const AuthProvider = ({ children }) => {
 
       console.log(response.data);
 
-      const { token, role } = response.data;
+      const { token, user } = response.data;
+      
 
       setAccessToken(token);
+      setUser(user);
+      
+      setAuthStore({
+        accessToken: token,
+        logout,
+      });
 
 
       const me = await apiClient.get('/users/me',);

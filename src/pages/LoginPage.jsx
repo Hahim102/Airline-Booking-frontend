@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, error } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
