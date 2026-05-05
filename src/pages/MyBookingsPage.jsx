@@ -7,8 +7,13 @@ import { useAuth } from '../hooks/useAuth';
  * - Shows flight bookings and booking history
  */
 export const MyBookingsPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState('UPCOMING');
+
+  // TODO: Fetch real bookings from API using user.id
+  // const [bookings] = useState(user?.bookings || []);
+  // TODO: Fetch real travel summary from API
+  // const travelSummary = user?.travelSummary || { miles: 24502, flights: 12, status: 'Platinum Elite' };
 
   // Show login prompt for unauthenticated users
   if (!isAuthenticated) {
@@ -118,15 +123,15 @@ export const MyBookingsPage = () => {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg bg-slate-50 p-4 text-center">
             <p className="mb-1 text-xs font-bold uppercase text-slate-400">Miles Earned</p>
-            <p className="text-3xl font-bold text-slate-800">24,502</p>
+            <p className="text-3xl font-bold text-slate-800">{user?.mileagePoints?.toLocaleString() || '24,502'}</p>
           </div>
           <div className="rounded-lg bg-slate-50 p-4 text-center">
             <p className="mb-1 text-xs font-bold uppercase text-slate-400">Flights this year</p>
-            <p className="text-3xl font-bold text-slate-800">12</p>
+            <p className="text-3xl font-bold text-slate-800">{user?.flightCount || '12'}</p>
           </div>
           <div className="rounded-lg bg-slate-50 p-4 text-center">
             <p className="mb-1 text-xs font-bold uppercase text-slate-400">Member Status</p>
-            <p className="text-3xl font-bold text-blue-600">Platinum Elite</p>
+            <p className="text-3xl font-bold text-blue-600">{user?.memberStatus || 'Platinum Elite'}</p>
           </div>
         </div>
       </div>

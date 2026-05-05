@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { ROLES } from '../utils/roles';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -31,7 +32,14 @@ export const LoginPage = () => {
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
-      navigate('/user');
+      const userRole = result.user?.role;
+      if (userRole?.includes(ROLES.SYSTEM_ADMIN)) {
+        navigate('/manager');
+      } else if (userRole?.includes(ROLES.AIRLINE_OWNER)) {
+        navigate('/owner');
+      } else {
+        navigate('/user');
+      }
     } else {
       setFormError(result.error);
     }

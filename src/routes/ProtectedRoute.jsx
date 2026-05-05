@@ -3,9 +3,9 @@ import { useAuth } from '../hooks/useAuth';
 
 
 export const ProtectedRoute = ({ children, requiredRoles = [] }) => {
-  const { isAuthenticated, isLoading, hasAnyRole } = useAuth();
+  const { isAuthenticated, isLoading, isInitializing, hasAnyRole } = useAuth();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isInitializing || isLoading) return <div>Loading...</div>;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

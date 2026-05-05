@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true); // Track app initialization
   const [error, setError] = useState(null);
 
 
@@ -38,7 +39,7 @@ export const AuthProvider = ({ children }) => {
       });
 
 
-      return { success: true };
+      return { success: true, user };
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Login failed';
       setError(errorMsg);
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser(me.data);
 
-      return { success: true };
+      return { success: true, user: me.data };
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Registration failed';
       setError(errorMsg);
@@ -104,12 +105,19 @@ export const AuthProvider = ({ children }) => {
 
 
   const hasRole = useCallback((role) => {
-    return user?.role?.includes(role) || false;
+    if (!user?.role) return false;
+    if (typeof user.role === 'string') {
+      return user.role.includes(role);
+    }
+    return Array.isArray(user.role) ? user.role.includes(role) : false;
   }, [user]);
 
 
   const hasAnyRole = useCallback((roles) => {
-    return roles?.some(role => user?.role?.includes(role)) || false;
+    if (!user?.role || !Array.isArray(roles)) return false;
+    // Handle both string and array formats for user.role
+    const userRoles = typeof user.role === 'string' ? user.role.split(',').map(r => r.trim()) : user.role;
+    return roles.some(role => userRoles.includes(role));
   }, [user]);
 
   useEffect(() => {
@@ -151,10 +159,14 @@ export const AuthProvider = ({ children }) => {
           logout,
         });
 
+        const meRes = await apiClient.get('/users/me');
+        setUser(meRes.data);
+
       } catch (err) {
+        console.log('No active session - user needs to login');
         setUser(null);
       } finally {
-        setIsLoading(false);
+        setIsInitializing(false);
       }
     };
 
@@ -164,6 +176,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     accessToken,
+    isInitializing,
     isLoading,
     error,
     login,
@@ -171,7 +184,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     hasRole,
     hasAnyRole,
-    isAuthenticated: !!accessToken,
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

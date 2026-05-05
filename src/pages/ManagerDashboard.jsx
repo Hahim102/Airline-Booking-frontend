@@ -1,0 +1,262 @@
+import { motion } from 'motion/react';
+import { Plane, Clock, Ticket, User, TrendingUp, TrendingDown, ArrowRight, MoreHorizontal, Download, Plus, Search, UserPlus, Map } from 'lucide-react';
+import { BarChart, Bar, ResponsiveContainer, XAxis, Cell } from 'recharts';
+import { MANAGER_METRICS, FLIGHT_MANAGEMENT_DATA, RECENT_BOOKINGS, USER_MANAGEMENT_DATA, CHART_DATA } from '../constants';
+import { useAuth } from '../hooks/useAuth';
+
+const ICON_MAP = {
+    Plane: Plane,
+    Clock: Clock,
+    Ticket: Ticket,
+    User: User
+};
+
+export default function ManagerDashboard() {
+    const { user } = useAuth();
+
+    // TODO: Replace mock MANAGER_METRICS with real data from API
+    // const metrics = user?.managerMetrics || MANAGER_METRICS;
+    // TODO: Replace mock FLIGHT_MANAGEMENT_DATA with real flight data from API
+    // const flights = user?.flights || FLIGHT_MANAGEMENT_DATA;
+    // TODO: Replace mock RECENT_BOOKINGS with real booking data from API
+    // const bookings = user?.recentBookings || RECENT_BOOKINGS;
+    // TODO: Replace mock USER_MANAGEMENT_DATA with real user data from API
+    // const users = user?.managedUsers || USER_MANAGEMENT_DATA;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+        >
+            <div className="flex justify-between items-end mb-8">
+                <div>
+                    <h2 className="text-4xl font-bold text-primary tracking-tight">Operations Overview</h2>
+                    <p className="text-outline font-medium">Real-time status of SkyStream's global fleet and bookings.</p>
+                </div>
+                <div className="flex gap-3">
+                    <button className="px-4 py-2 text-xs font-bold text-outline bg-white border border-outline-variant rounded-lg hover:bg-surface transition-colors custom-shadow flex items-center gap-2 uppercase tracking-wide">
+                        <Download size={16} /> Export Report
+                    </button>
+                    <button className="px-4 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-all custom-shadow flex items-center gap-2 uppercase tracking-wide">
+                        <Plus size={16} /> Add New Flight
+                    </button>
+                </div>
+            </div>
+
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {MANAGER_METRICS.map((metric, idx) => {
+                    const Icon = ICON_MAP[metric.icon];
+                    return (
+                        <div key={idx} className="bg-white p-6 rounded-2xl border border-outline-variant custom-shadow">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className={`p-2 rounded-lg ${idx === 0 ? 'bg-blue-50 text-blue-600' :
+                                        idx === 1 ? 'bg-orange-50 text-orange-600' :
+                                            idx === 2 ? 'bg-purple-50 text-purple-600' :
+                                                'bg-cyan-50 text-cyan-600'
+                                    }`}>
+                                    <Icon size={20} />
+                                </div>
+                                <span className={`text-[10px] font-bold flex items-center gap-1 ${metric.changeType === 'positive' ? 'text-emerald-500' :
+                                        metric.changeType === 'negative' ? 'text-rose-500' : 'text-outline'
+                                    }`}>
+                                    {metric.trend === 'up' ? <TrendingUp size={12} /> : metric.trend === 'down' ? <TrendingDown size={12} /> : null}
+                                    {metric.change}
+                                </span>
+                            </div>
+                            <p className="text-outline text-[10px] font-bold uppercase tracking-widest">{metric.label}</p>
+                            <h3 className="text-3xl font-bold text-primary mt-1">{metric.value}</h3>
+                        </div>
+                    );
+                })}
+            </section>
+
+            <div className="grid grid-cols-12 gap-6">
+                {/* Flight Management Table */}
+                <div className="col-span-12 lg:col-span-8 bg-white rounded-2xl border border-outline-variant custom-shadow flex flex-col overflow-hidden">
+                    <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+                        <h3 className="text-lg font-bold text-primary">Flight Management</h3>
+                        <select className="text-xs font-bold border-outline-variant rounded-lg focus:ring-primary focus:border-primary px-3 py-1.5 outline-none bg-white">
+                            <option>All Status</option>
+                            <option>Scheduled</option>
+                            <option>Delayed</option>
+                            <option>Cancelled</option>
+                        </select>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-surface-container-low/50 text-outline text-[10px] font-bold uppercase tracking-widest">
+                                <tr>
+                                    <th className="px-6 py-4">Flight ID</th>
+                                    <th className="px-6 py-4">Route</th>
+                                    <th className="px-6 py-4">Date & Time</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4 text-right pr-12">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-outline-variant/30 text-sm">
+                                {FLIGHT_MANAGEMENT_DATA.map((flight, idx) => (
+                                    <tr key={idx} className="hover:bg-surface-container-low/30 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-primary">{flight.id}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 font-medium text-on-surface">
+                                                <span>{flight.routeFrom}</span>
+                                                <ArrowRight size={14} className="text-outline-variant" />
+                                                <span>{flight.routeTo}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-outline font-medium">{flight.dateTime}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${flight.status === 'Scheduled' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                                    flight.status === 'Delayed' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                                        'bg-rose-50 text-rose-700 border-rose-100'
+                                                }`}>
+                                                {flight.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right pr-12">
+                                            <button className="text-outline-variant hover:text-primary transition-colors">
+                                                <MoreHorizontal size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="p-4 border-t border-outline-variant mt-auto text-center">
+                        <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wide">View All Flights</button>
+                    </div>
+                </div>
+
+                {/* Booking Trend Chart */}
+                <div className="col-span-12 lg:col-span-4 bg-white rounded-2xl border border-outline-variant custom-shadow p-6 flex flex-col">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-bold text-primary">Booking Trend</h3>
+                        <span className="text-[10px] font-bold text-outline uppercase tracking-widest">Last 7 Days</span>
+                    </div>
+                    <div className="flex-1 min-h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={CHART_DATA}>
+                                <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                                    {CHART_DATA.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={index === 5 ? '#4f5a9a' : '#003874'} className="hover:fill-secondary cursor-pointer transition-colors" />
+                                    ))}
+                                </Bar>
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#737782' }} dy={10} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="mt-12 space-y-4">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-outline font-medium">Peak Day</span>
+                            <span className="font-bold text-primary">Saturday</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-outline font-medium">Avg. Daily Bookings</span>
+                            <span className="font-bold text-primary">6,130</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-6">
+                {/* Recent Bookings */}
+                <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl border border-outline-variant custom-shadow overflow-hidden">
+                    <div className="p-6 border-b border-outline-variant bg-surface-container-low">
+                        <h3 className="text-lg font-bold text-primary">Recent Bookings</h3>
+                    </div>
+                    <div className="divide-y divide-outline-variant/30">
+                        {RECENT_BOOKINGS.map((booking) => (
+                            <div key={booking.id} className="p-4 flex items-center justify-between hover:bg-surface-container-low/30 transition-all">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-bold shadow-sm">
+                                        {booking.userInitials}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-on-surface">{booking.userName}</p>
+                                        <p className="text-[10px] text-outline font-medium">Flight: {booking.flightId} • {booking.tier}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${booking.status === 'CONFIRMED' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' :
+                                            booking.status === 'PENDING' ? 'text-amber-600 bg-amber-50 border-amber-100' :
+                                                'text-rose-600 bg-rose-50 border-rose-100'
+                                        }`}>
+                                        {booking.status}
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <button className="text-[10px] font-bold text-primary hover:bg-surface-container-high px-3 py-1.5 rounded transition-colors border border-outline-variant">Update</button>
+                                        <button
+                                            className={`text-[10px] font-bold px-3 py-1.5 rounded transition-colors border ${booking.status === 'REFUNDED' ? 'text-outline opacity-50 cursor-not-allowed border-outline-variant' : 'text-error hover:bg-error-container border-error/10'
+                                                }`}
+                                            disabled={booking.status === 'REFUNDED'}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* User Management */}
+                <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl border border-outline-variant custom-shadow flex flex-col overflow-hidden">
+                    <div className="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+                        <h3 className="text-lg font-bold text-primary">User Management</h3>
+                        <button className="text-outline hover:text-primary transition-colors focus:outline-none">
+                            <UserPlus size={20} />
+                        </button>
+                    </div>
+                    <div className="p-6 space-y-6 flex-1">
+                        {USER_MANAGEMENT_DATA.map((user) => (
+                            <div key={user.id} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <img src={user.avatar} className="w-10 h-10 rounded-full object-cover border border-outline-variant" alt={user.name} />
+                                    <div>
+                                        <p className="text-sm font-bold text-on-surface">{user.name}</p>
+                                        <p className="text-[10px] text-outline font-semibold uppercase">User ID: #{user.id}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button className="text-[11px] font-bold text-primary hover:underline uppercase tracking-wide">View Profile</button>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked={user.active} className="sr-only peer" readOnly />
+                                        <div className="w-8 h-4 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-4 border-t border-outline-variant text-center">
+                        <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">See All Users</button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-8 bg-white rounded-2xl border border-outline-variant custom-shadow overflow-hidden">
+                <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+                    <h3 className="text-lg font-bold text-primary">Live Fleet Distribution</h3>
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="text-[10px] font-bold text-outline uppercase tracking-widest tracking-widest">Live Feed</span>
+                    </div>
+                </div>
+                <div className="relative h-[300px] bg-sky-50 overflow-hidden">
+                    <img
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1TjcloFCEssHaVQYF9o6iWqHNmrn73m0twKmNHchO0SNx2zD0SDjX6j2IZa2WahIrESGCGL_DN9oKga1O2pDhndyeC06qNAt2tKiUlYX4yC86MNG0XF2DWipGjGYEzDEvGE9xFV96b21zdlVaIQdkdf2uOdQ68b88V35LZ9hxa5wBYQ1qunTiQ_pR-j2Nuw0YMGLdlnv5GGvBlRwQECYBORTzkudjnLNhJ6G6ZIWdrIXLY4S8IL3jlXEQAseboFvor554XC7WC6Q"
+                        className="w-full h-full object-cover grayscale opacity-50"
+                        alt="Map"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                        <div className="bg-white/90 backdrop-blur px-8 py-4 rounded-full border border-outline-variant custom-shadow flex items-center gap-4 transition-transform hover:scale-105 active:scale-95 cursor-pointer">
+                            <Map size={24} className="text-primary" />
+                            <span className="text-sm font-bold text-primary uppercase tracking-wide">Interactive Map Offline - Monitoring Regional Statistics</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+}

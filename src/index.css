@@ -1,45 +1,72 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-
 @theme {
-  --font-sans: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
-  --color-primary: #0058be;
-  --color-primary-container: #2170e4;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-surface: #f8f9ff;
+  --color-surface-dim: #cbdbf5;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container: #e5eeff;
+  --color-surface-container-high: #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+  --color-on-surface: #0b1c30;
+  --color-on-surface-variant: #424751;
+  --color-inverse-surface: #213145;
+  --color-inverse-on-surface: #eaf1ff;
+  --color-outline: #737782;
+  --color-outline-variant: #c3c6d2;
+  --color-surface-tint: #2e5ea5;
+
+  --color-primary: #003874;
   --color-on-primary: #ffffff;
-  --color-secondary: #505f76;
-  --color-surface: #f7f9fb;
-  --color-surface-container: #eceef0;
-  --color-outline-variant: #c2c6d6;
-  --color-on-surface-variant: #424754;
-  --color-on-background: #191c1e;
-  --color-on-primary-container: #fefcff;
-  
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
+  --color-primary-container: #1a4f95;
+  --color-on-primary-container: #a3c3ff;
+  --color-inverse-primary: #aac7ff;
+
+  --color-secondary: #4f5a9a;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #acb7fe;
+  --color-on-secondary-container: #3b4685;
+
+  --color-tertiary: #5e2b00;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #813d00;
+  --color-on-tertiary-container: #ffb17e;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-primary-fixed: #d6e3ff;
+  --color-primary-fixed-dim: #aac7ff;
+  --color-on-primary-fixed: #001b3e;
+  --color-on-primary-fixed-variant: #08458b;
+
+  --color-secondary-fixed: #dee0ff;
+  --color-secondary-fixed-dim: #bac3ff;
+  --color-on-secondary-fixed: #061353;
+  --color-on-secondary-fixed-variant: #374280;
+
+  --color-tertiary-fixed: #ffdbc7;
+  --color-tertiary-fixed-dim: #ffb688;
+  --color-on-tertiary-fixed: #311300;
+  --color-on-tertiary-fixed-variant: #733600;
+
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
 }
 
 @layer base {
-  html,
-  body,
-  #root {
-    min-height: 100%;
-  }
-
   body {
-    @apply m-0 bg-slate-100 font-sans text-slate-900;
+    @apply bg-surface text-on-surface font-sans;
   }
 }
 
-.glass-nav {
-  @apply bg-white/80 backdrop-blur-md border-b border-slate-200;
-}
-
-.hero-gradient {
-  background: linear-gradient(to right, rgba(15, 23, 42, 0.8), transparent);
-}
-
-.bento-card {
-  @apply bg-white p-8 rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-all duration-300;
+.custom-shadow {
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
 }

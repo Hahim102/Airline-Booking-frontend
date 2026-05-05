@@ -1,22 +1,31 @@
 import { useLocation } from 'react-router-dom';
-import { Navbar } from './Navbar';
 import { useAuth } from '../hooks/useAuth';
-
+import Sidebar from './SlideBar';
+import TopNav from './TopNav';
+import { useState } from 'react';
 
 export const Layout = ({ children }) => {
-  const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
-  const hideNavbarOnPaths = ['/', '/login', '/register'];
-  const isGuestBookingsPage = location.pathname === '/bookings' && !isAuthenticated;
-  const showNavbar = !hideNavbarOnPaths.includes(location.pathname) && !isGuestBookingsPage;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-100">
-      {showNavbar && <Navbar />}
-      <main className="flex-1">
-        {children}
-      </main>
+    <div className="min-h-screen bg-surface">
+
+      <Sidebar
+        currentRole={user?.role}
+      />
+
+      <div className="ml-64 flex flex-col min-h-screen">
+        <TopNav onProfileClick={() => openModel('profile')} />
+
+        <main className="p-10 flex-1">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+
+
     </div>
   );
 };
