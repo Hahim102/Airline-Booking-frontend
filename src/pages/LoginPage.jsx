@@ -99,6 +99,15 @@ export const LoginPage = () => {
 
         <div className="mt-6 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">
           <small className="block">Internal System Access Only</small>
+          <div className="mt-4 text-center text-sm text-slate-600">
+            Don't have an account?{' '}
+            <span
+              onClick={() => navigate('/register')}
+              className="cursor-pointer font-medium text-blue-600 hover:underline"
+            >
+              Sign up
+            </span>
+          </div>
           <small className="block"><a href="#forgot" className="font-medium text-blue-600 hover:underline">Forgot Password?</a></small>
         </div>
       </div>

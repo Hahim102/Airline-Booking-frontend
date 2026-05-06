@@ -14,8 +14,6 @@ const ICON_MAP = {
 export default function OwnerDashboard() {
     const { user } = useAuth();
 
-    // TODO: Replace OWNER_METRICS with real data from user/API when available
-    // const ownerMetrics = user?.metrics || OWNER_METRICS;
     
     return (
         <motion.div

@@ -24,8 +24,9 @@ import FleetModel from './models/FleetModel';
 import StaffModel from './models/StaffModel';
 import ReportsModel from './models/ReportsModel';
 import OverviewUpdateModel from './models/OverviewUpdateModel';
+import UserManagementModel from './models/UserManagementModel';
 
-export default function Sidebar({ currentRole, activeTab }) {
+export default function Sidebar({ currentRole, className = '' }) {
     const [openModel, setOpenModel] = useState(null);
 
     const { user, logout } = useAuth();
@@ -66,25 +67,31 @@ export default function Sidebar({ currentRole, activeTab }) {
 
     return (
         <>
-            <aside className="h-screen w-64 fixed left-0 top-0 bg-white border-r border-outline-variant flex flex-col py-6 px-4 z-50">
+            <aside className={`w-72 fixed right-8 top-16 bg-white border border-outline-variant rounded-2xl shadow-xl shadow-black/5 flex flex-col py-6 px-4 z-30 ${className}`}>
                 <div className="mb-10 px-2">
-                    <h1 className="text-xl font-bold text-primary tracking-tight">Airline Booking</h1>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/booking')}
+                        className="text-left text-xl font-bold text-primary tracking-tight hover:opacity-90 transition-opacity"
+                    >
+                        Airline Booking
+                    </button>
                     <p className="text-[10px] text-outline font-semibold uppercase tracking-widest mt-1">Operations</p>
                 </div>
 
-                <nav className="flex-1 space-y-1">
+                <nav className="flex-1 space-y-1 overflow-auto pr-1">
                     {filteredItems.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => { 
                                 if (item.type === 'model') {
                                     handleModelClick(item.id);
-                                } else {
-                                    onTabChange(item.id);
+                                } else if (item.id === 'overview') {
+                                    navigate('/user');
                                 }
                             }}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left ${activeTab === item.id
-                                    ? 'text-primary font-bold border-r-4 border-primary bg-surface-container-low'
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left ${item.id === 'overview' && window.location.pathname === '/user'
+                                    ? 'text-primary font-bold border-l-4 border-primary bg-surface-container-low'
                                     : 'text-outline hover:text-primary hover:bg-surface-container-low'
                                 }`}
                         >
@@ -143,7 +150,7 @@ export default function Sidebar({ currentRole, activeTab }) {
             </Model>
 
             <Model isOpen={openModel === 'users'} onClose={() => setOpenModel(null)} title="User Management">
-                <OverviewUpdateModel onClose={() => setOpenModel(null)} />
+                <UserManagementModel onClose={() => setOpenModel(null)} />
             </Model>
 
             <Model isOpen={openModel === 'settings'} onClose={() => setOpenModel(null)} title="System Settings">

@@ -6,12 +6,27 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { HomePage } from './pages/HomePage';
+import BookingLandingView from './pages/BookingLandingView';
 import { MyBookingsPage } from './pages/MyBookingsPage';
 import { ForbiddenPage } from './pages/ForbiddenPage';
 import { ROLES } from './utils/roles';
 import UserDashboard from './pages/UserDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
+import { useAuth } from './hooks/useAuth';
+
+const PublicOnly = ({ children }) => {
+  const { user, isInitializing, isLoading, isAuthenticated } = useAuth();
+
+  if (isInitializing || isLoading) return <div>Loading...</div>;
+  if (!isAuthenticated) return children;
+
+  const role = user?.role;
+  if (role?.includes(ROLES.SYSTEM_ADMIN)) return <Navigate to="/manager" replace />;
+  if (role?.includes(ROLES.AIRLINE_OWNER)) return <Navigate to="/owner" replace />;
+  return <Navigate to="/user" replace />;
+};
+
 
 
 /**
@@ -28,33 +43,37 @@ function App() {
           <Route
             path="/"
             element={
-              <PublicLayout>
-                <HomePage />
-              </PublicLayout>
+              <PublicOnly>
+                <PublicLayout>
+                  <HomePage />
+                </PublicLayout>
+              </PublicOnly>
             }
           />
+
           <Route
-            path="/bookings"
-            element={
-              <PublicLayout>
-                <MyBookingsPage />
-              </PublicLayout>
-            }
+            path="/booking-landing"
+            element={<Navigate to="/" replace />}
           />
+          
           <Route
             path="/register"
             element={
-              <PublicLayout>
-                <RegisterPage />
-              </PublicLayout>
+              <PublicOnly>
+                <PublicLayout>
+                  <RegisterPage />
+                </PublicLayout>
+              </PublicOnly>
             }
           />
           <Route
             path="/login"
             element={
-              <PublicLayout>
-                <LoginPage />
-              </PublicLayout>
+              <PublicOnly>
+                <PublicLayout>
+                  <LoginPage />
+                </PublicLayout>
+              </PublicOnly>
             }
           />
 
@@ -64,6 +83,26 @@ function App() {
               <ProtectedRoute requiredRoles={[ROLES.USER]}>
                 <Layout>
                   <UserDashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings"
+            element={
+              <ProtectedRoute requiredRoles={[ROLES.USER]}>
+                <Layout>
+                  <MyBookingsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/booking"
+            element={
+              <ProtectedRoute requiredRoles={[ROLES.USER]}>
+                <Layout>
+                  <BookingLandingView showNavbar={false} />
                 </Layout>
               </ProtectedRoute>
             }

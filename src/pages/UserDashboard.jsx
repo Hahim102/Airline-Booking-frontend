@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Contact, Ticket, Armchair, Utensils, PlaneTakeoff, Lock, Smartphone, ChevronRight, RefreshCw, Settings } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import Model from '../components/ui/Model';
 import ProfileModel from '../components/models/ProfileModel';
 
 export default function UserDashboard() {
     const [openModel, setOpenModel] = useState(null);
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     const userData = {
         name: user?.fullName || user?.name || "User Name",
@@ -36,7 +38,10 @@ export default function UserDashboard() {
                             <p className="text-white/70 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Member Since {userData.memberSince}</p>
                             <h1 className="text-4xl font-bold text-white tracking-tight">Welcome Back, {userData.name}</h1>
                         </div>
-                        <button className="flex items-center gap-3 px-8 py-3.5 bg-white text-primary rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-surface transition-all custom-shadow">
+                        <button
+                            onClick={() => navigate('/bookings')}
+                            className="flex items-center gap-3 px-8 py-3.5 bg-white text-primary rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-surface transition-all custom-shadow"
+                        >
                             <Ticket size={18} />
                             View My Bookings
                         </button>

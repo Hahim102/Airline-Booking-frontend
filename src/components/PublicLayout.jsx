@@ -1,4 +1,3 @@
-import { Navbar } from './Navbar';
 import { useLocation } from 'react-router-dom';
 
 export const PublicLayout = ({ children }) => {
@@ -9,7 +8,6 @@ export const PublicLayout = ({ children }) => {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-100">
-      {showNavbar && <Navbar />}
       <main className="flex-1">{children}</main>
     </div>
   );

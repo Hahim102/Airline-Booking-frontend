@@ -3,6 +3,10 @@ import { Plane, Clock, Ticket, User, TrendingUp, TrendingDown, ArrowRight, MoreH
 import { BarChart, Bar, ResponsiveContainer, XAxis, Cell } from 'recharts';
 import { MANAGER_METRICS, FLIGHT_MANAGEMENT_DATA, RECENT_BOOKINGS, USER_MANAGEMENT_DATA, CHART_DATA } from '../constants';
 import { useAuth } from '../hooks/useAuth';
+import { useUsers } from '../hooks/useUsers';
+import { ROLES } from '../utils/roles';
+import { useState, useEffect } from 'react';
+import ProfileModel from '../components/models/ProfileModel';
 
 const ICON_MAP = {
     Plane: Plane,
@@ -13,15 +17,29 @@ const ICON_MAP = {
 
 export default function ManagerDashboard() {
     const { user } = useAuth();
+    const { users, loading, error, fetchUsers, updateUserStatus } = useUsers();
+    const [selectedAdminProfile, setSelectedAdminProfile] = useState(null);
+    const [togglingUserId, setTogglingUserId] = useState(null);
 
-    // TODO: Replace mock MANAGER_METRICS with real data from API
-    // const metrics = user?.managerMetrics || MANAGER_METRICS;
-    // TODO: Replace mock FLIGHT_MANAGEMENT_DATA with real flight data from API
-    // const flights = user?.flights || FLIGHT_MANAGEMENT_DATA;
-    // TODO: Replace mock RECENT_BOOKINGS with real booking data from API
-    // const bookings = user?.recentBookings || RECENT_BOOKINGS;
-    // TODO: Replace mock USER_MANAGEMENT_DATA with real user data from API
-    // const users = user?.managedUsers || USER_MANAGEMENT_DATA;
+    // Fetch users on component mount
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
+
+    // Filter only admin users
+    const adminUsers = users.filter(u => u.role === ROLES.SYSTEM_ADMIN);
+
+    const handleToggleActive = async (userId, currentStatus) => {
+        try {
+            setTogglingUserId(userId);
+            await updateUserStatus(userId, !currentStatus);
+        } catch (err) {
+            console.error('Failed to toggle status:', err);
+        } finally {
+            setTogglingUserId(null);
+        }
+    };
+
 
     return (
         <motion.div
@@ -201,36 +219,55 @@ export default function ManagerDashboard() {
                     </div>
                 </div>
 
-                {/* User Management */}
+                {/* Admin User Management */}
                 <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl border border-outline-variant custom-shadow flex flex-col overflow-hidden">
                     <div className="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-primary">User Management</h3>
+                        <h3 className="text-lg font-bold text-primary">Admin User Management</h3>
                         <button className="text-outline hover:text-primary transition-colors focus:outline-none">
                             <UserPlus size={20} />
                         </button>
                     </div>
-                    <div className="p-6 space-y-6 flex-1">
-                        {USER_MANAGEMENT_DATA.map((user) => (
-                            <div key={user.id} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <img src={user.avatar} className="w-10 h-10 rounded-full object-cover border border-outline-variant" alt={user.name} />
-                                    <div>
-                                        <p className="text-sm font-bold text-on-surface">{user.name}</p>
-                                        <p className="text-[10px] text-outline font-semibold uppercase">User ID: #{user.id}</p>
+                    <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+                        {loading && !adminUsers.length ? (
+                            <p className="text-center text-outline">Loading admin users...</p>
+                        ) : error ? (
+                            <p className="text-center text-error text-sm">{error}</p>
+                        ) : adminUsers.length === 0 ? (
+                            <p className="text-center text-outline">No admin users found</p>
+                        ) : (
+                            adminUsers.map((admin) => (
+                                <div key={admin.id} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <img src={admin.avatar} className="w-10 h-10 rounded-full object-cover border border-outline-variant" alt={admin.name} />
+                                        <div>
+                                            <p className="text-sm font-bold text-on-surface">{admin.name}</p>
+                                            <p className="text-[10px] text-outline font-semibold uppercase">{admin.email}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <button 
+                                            onClick={() => setSelectedAdminProfile(admin)}
+                                            className="text-[11px] font-bold text-primary hover:underline uppercase tracking-wide"
+                                        >
+                                            View Profile
+                                        </button>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={admin.active} 
+                                                onChange={() => handleToggleActive(admin.id, admin.active)}
+                                                disabled={togglingUserId === admin.id}
+                                                className="sr-only peer" 
+                                            />
+                                            <div className="w-8 h-4 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary opacity-60 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
+                                        </label>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <button className="text-[11px] font-bold text-primary hover:underline uppercase tracking-wide">View Profile</button>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" checked={user.active} className="sr-only peer" readOnly />
-                                        <div className="w-8 h-4 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary"></div>
-                                    </label>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                     <div className="p-4 border-t border-outline-variant text-center">
-                        <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">See All Users</button>
+                        <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">See All Admin Users</button>
                     </div>
                 </div>
             </div>
@@ -257,6 +294,76 @@ export default function ManagerDashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* Admin Profile Modal */}
+            {selectedAdminProfile && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md custom-shadow overflow-hidden">
+                        {/* Header */}
+                        <div className="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-primary">Admin Profile</h3>
+                            <button
+                                onClick={() => setSelectedAdminProfile(null)}
+                                className="text-outline hover:text-primary transition-colors text-2xl leading-none"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6">
+                            {/* Avatar and Name */}
+                            <div className="flex flex-col items-center text-center">
+                                <img
+                                    src={selectedAdminProfile.avatar}
+                                    alt={selectedAdminProfile.name}
+                                    className="w-20 h-20 rounded-full object-cover border-4 border-primary/20 mb-4"
+                                />
+                                <h4 className="text-lg font-bold text-on-surface">{selectedAdminProfile.name}</h4>
+                                <p className="text-xs text-primary font-bold uppercase tracking-widest mt-1">
+                                    System Administrator
+                                </p>
+                            </div>
+
+                            {/* Info */}
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Email</span>
+                                    <span className="text-on-surface text-sm break-all">{selectedAdminProfile.email}</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Phone</span>
+                                    <span className="text-on-surface text-sm">{selectedAdminProfile.phone || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Status</span>
+                                    <span className={`text-sm font-bold ${selectedAdminProfile.active ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                        {selectedAdminProfile.active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                                {selectedAdminProfile.lastLoginAt && (
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Last Login</span>
+                                        <span className="text-on-surface text-sm">
+                                            {new Date(selectedAdminProfile.lastLoginAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-outline-variant bg-surface-container-low text-center">
+                            <button
+                                onClick={() => setSelectedAdminProfile(null)}
+                                className="text-xs font-bold text-primary hover:bg-surface-container-highest px-4 py-2 rounded-lg transition-colors uppercase tracking-wide"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </motion.div>
     );
 }

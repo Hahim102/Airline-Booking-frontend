@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * MyBookingsPage
@@ -9,6 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 export const MyBookingsPage = () => {
   const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState('UPCOMING');
+  const navigate = useNavigate();
 
   // TODO: Fetch real bookings from API using user.id
   // const [bookings] = useState(user?.bookings || []);
@@ -30,14 +32,14 @@ export const MyBookingsPage = () => {
   // Show bookings for authenticated users
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
-      <div className="mb-6">
-        <h1 className="mb-2 text-4xl font-bold text-slate-900">My Bookings</h1>
-        <p className="text-slate-600">Manage your upcoming journeys and review past flight history</p>
-      </div>
-
       <div className="mb-6 flex flex-wrap gap-3 md:justify-end">
         <button className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">☰ Filter</button>
-        <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Booking</button>
+        <button
+          onClick={() => navigate('/booking')}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          + New Booking
+        </button>
       </div>
 
       <div className="mb-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

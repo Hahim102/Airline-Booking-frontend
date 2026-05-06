@@ -1,20 +1,33 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, User, Save, IdCard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import apiClient from '../../api/apiClient';
 
 export default function ProfileModel({ onClose }) {
-    const { user } = useAuth();
+    const { user, setUser } = useAuth();
     const [formData, setFormData] = useState({
-        name: user?.fullName || user?.name || "User Name",
+        fullName: user?.fullName,
         email: user?.email || "user@example.com",
         phone: user?.phone || "+1 234 567 890",
-        passport: user?.passport || "ABC123456",
+        // passPort: user?.passport || "ABC123456",
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Updating profile...', formData);
-        onClose();
+        try {
+            console.log("FORM DATA BEFORE SEND:", formData);
+            const res = await apiClient.put(`/auth/update-profile?userId=${user?.id}`, formData);
+            
+            const updatedUser = res.data.user;
+
+            console.log("Profile updated successfully:", updatedUser);
+
+            setUser(updatedUser)
+            onClose();
+        }
+        catch (error) {
+            console.error("Error updating profile:", error);
+        }
     };
 
     return (
@@ -30,7 +43,7 @@ export default function ProfileModel({ onClose }) {
                         <span className="text-white text-[10px] font-bold uppercase">Change</span>
                     </div>
                 </div>
-                <h4 className="mt-4 font-bold text-on-surface text-lg">{formData.name}</h4>
+                <h4 className="mt-4 font-bold text-on-surface text-lg">{formData.fullName}</h4>
                 <p className="text-xs text-outline font-bold uppercase tracking-widest">Premium Member</p>
             </div>
 
@@ -41,8 +54,8 @@ export default function ProfileModel({ onClose }) {
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" size={18} />
                         <input
                             type="text"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            value={formData.fullName}
+                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                             className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm font-medium"
                         />
                     </div>
@@ -74,7 +87,7 @@ export default function ProfileModel({ onClose }) {
                     </div>
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                     <label className="text-[10px] font-bold text-outline uppercase tracking-widest px-1">Passpost</label>
                     <div className="relative">
                         <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" size={18} />
@@ -85,7 +98,7 @@ export default function ProfileModel({ onClose }) {
                             className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm font-medium"
                         />
                     </div>
-                </div>
+                </div> */}
             </div>
 
             <div className="pt-6 border-t border-outline-variant flex justify-end gap-3">
