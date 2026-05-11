@@ -5,6 +5,18 @@ const USER_API = '/users';
 
 export const userService = {
 
+  createUser: async (userData) => {
+    try {
+      const response = await apiClient.post(`${USER_API}/create-user`, 
+        userData
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  },
+
   getUserProfile: async (email) => {
     try {
       const response = await apiClient.get(`${USER_API}/profile`, {
@@ -70,6 +82,8 @@ export const userService = {
       throw error;
     }
   },
+
+
 
 
   deleteUser: async (userId) => {

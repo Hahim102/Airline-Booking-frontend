@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Plane, Clock, Ticket, User, TrendingUp, TrendingDown, ArrowRight, MoreHorizontal, Download, Plus, Search, UserPlus, Map } from 'lucide-react';
+import { Plane, Clock, Ticket, User, TrendingUp, TrendingDown, ArrowRight, MoreHorizontal, Download, Plus, Search, UserPlus, Map, Edit, Shield } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, XAxis, Cell } from 'recharts';
 import { MANAGER_METRICS, FLIGHT_MANAGEMENT_DATA, RECENT_BOOKINGS, USER_MANAGEMENT_DATA, CHART_DATA } from '../constants';
 import { useAuth } from '../hooks/useAuth';
@@ -7,6 +7,10 @@ import { useUsers } from '../hooks/useUsers';
 import { ROLES } from '../utils/roles';
 import { useState, useEffect } from 'react';
 import ProfileModel from '../components/models/ProfileModel';
+import SecurityModel from '../components/models/SecurityModel';
+import CreateUserModel from '../components/models/CreateUserModel';
+import Model from '../components/ui/Model';
+import UserManagementModel from '../components/models/UserManagementModel';
 
 const ICON_MAP = {
     Plane: Plane,
@@ -20,13 +24,12 @@ export default function ManagerDashboard() {
     const { users, loading, error, fetchUsers, updateUserStatus } = useUsers();
     const [selectedAdminProfile, setSelectedAdminProfile] = useState(null);
     const [togglingUserId, setTogglingUserId] = useState(null);
+    const [openModel, setOpenModel] = useState(null);
 
-    // Fetch users on component mount
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
-    // Filter only admin users
     const adminUsers = users.filter(u => u.role === ROLES.SYSTEM_ADMIN);
 
     const handleToggleActive = async (userId, currentStatus) => {
@@ -40,13 +43,44 @@ export default function ManagerDashboard() {
         }
     };
 
-
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
         >
+            {/* Admin Profile Card */}
+            <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl border border-primary/10 p-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <img
+                            src={user?.avatar}
+                            alt={user?.name}
+                            className="w-16 h-16 rounded-full object-cover border-4 border-primary/20"
+                        />
+                        <div>
+                            <h3 className="text-xl font-bold text-primary">{user?.name}</h3>
+                            <p className="text-sm text-outline">{user?.email}</p>
+                            <p className="text-xs text-outline font-bold uppercase tracking-widest mt-1">System Administrator</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setOpenModel('profile')}
+                            className="px-4 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-all flex items-center gap-2 uppercase tracking-wide"
+                        >
+                            <Edit size={14} /> Edit Profile
+                        </button>
+                        <button
+                            onClick={() => setOpenModel('security')}
+                            className="px-4 py-2 text-xs font-bold text-primary bg-white border border-primary rounded-lg hover:bg-primary/5 transition-all flex items-center gap-2 uppercase tracking-wide"
+                        >
+                            <Shield size={14} /> Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h2 className="text-4xl font-bold text-primary tracking-tight">Operations Overview</h2>
@@ -69,14 +103,14 @@ export default function ManagerDashboard() {
                         <div key={idx} className="bg-white p-6 rounded-2xl border border-outline-variant custom-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <div className={`p-2 rounded-lg ${idx === 0 ? 'bg-blue-50 text-blue-600' :
-                                        idx === 1 ? 'bg-orange-50 text-orange-600' :
-                                            idx === 2 ? 'bg-purple-50 text-purple-600' :
-                                                'bg-cyan-50 text-cyan-600'
+                                    idx === 1 ? 'bg-orange-50 text-orange-600' :
+                                        idx === 2 ? 'bg-purple-50 text-purple-600' :
+                                            'bg-cyan-50 text-cyan-600'
                                     }`}>
                                     <Icon size={20} />
                                 </div>
                                 <span className={`text-[10px] font-bold flex items-center gap-1 ${metric.changeType === 'positive' ? 'text-emerald-500' :
-                                        metric.changeType === 'negative' ? 'text-rose-500' : 'text-outline'
+                                    metric.changeType === 'negative' ? 'text-rose-500' : 'text-outline'
                                     }`}>
                                     {metric.trend === 'up' ? <TrendingUp size={12} /> : metric.trend === 'down' ? <TrendingDown size={12} /> : null}
                                     {metric.change}
@@ -126,8 +160,8 @@ export default function ManagerDashboard() {
                                         <td className="px-6 py-4 text-outline font-medium">{flight.dateTime}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${flight.status === 'Scheduled' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                                    flight.status === 'Delayed' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                                                        'bg-rose-50 text-rose-700 border-rose-100'
+                                                flight.status === 'Delayed' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                                    'bg-rose-50 text-rose-700 border-rose-100'
                                                 }`}>
                                                 {flight.status}
                                             </span>
@@ -198,8 +232,8 @@ export default function ManagerDashboard() {
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${booking.status === 'CONFIRMED' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' :
-                                            booking.status === 'PENDING' ? 'text-amber-600 bg-amber-50 border-amber-100' :
-                                                'text-rose-600 bg-rose-50 border-rose-100'
+                                        booking.status === 'PENDING' ? 'text-amber-600 bg-amber-50 border-amber-100' :
+                                            'text-rose-600 bg-rose-50 border-rose-100'
                                         }`}>
                                         {booking.status}
                                     </span>
@@ -223,7 +257,10 @@ export default function ManagerDashboard() {
                 <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl border border-outline-variant custom-shadow flex flex-col overflow-hidden">
                     <div className="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
                         <h3 className="text-lg font-bold text-primary">Admin User Management</h3>
-                        <button className="text-outline hover:text-primary transition-colors focus:outline-none">
+                        <button 
+                            onClick={() => setOpenModel('createUser')}
+                            className="text-outline hover:text-primary transition-colors focus:outline-none"
+                        >
                             <UserPlus size={20} />
                         </button>
                     </div>
@@ -245,19 +282,19 @@ export default function ManagerDashboard() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <button 
+                                        <button
                                             onClick={() => setSelectedAdminProfile(admin)}
                                             className="text-[11px] font-bold text-primary hover:underline uppercase tracking-wide"
                                         >
                                             View Profile
                                         </button>
                                         <label className="relative inline-flex items-center cursor-pointer">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={admin.active} 
+                                            <input
+                                                type="checkbox"
+                                                checked={admin.active}
                                                 onChange={() => handleToggleActive(admin.id, admin.active)}
                                                 disabled={togglingUserId === admin.id}
-                                                className="sr-only peer" 
+                                                className="sr-only peer"
                                             />
                                             <div className="w-8 h-4 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary opacity-60 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
                                         </label>
@@ -267,7 +304,13 @@ export default function ManagerDashboard() {
                         )}
                     </div>
                     <div className="p-4 border-t border-outline-variant text-center">
-                        <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">See All Admin Users</button>
+
+                        <button
+                            onClick={() => setOpenModel('admins')}
+                            className="text-xs font-bold text-primary hover:underline uppercase tracking-wider"
+                        >
+                            See All Admin Users
+                        </button>
                     </div>
                 </div>
             </div>
@@ -306,7 +349,6 @@ export default function ManagerDashboard() {
                                 onClick={() => setSelectedAdminProfile(null)}
                                 className="text-outline hover:text-primary transition-colors text-2xl leading-none"
                             >
-                                ×
                             </button>
                         </div>
 
@@ -326,27 +368,84 @@ export default function ManagerDashboard() {
                             </div>
 
                             {/* Info */}
-                            <div className="space-y-4">
+                            <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                                {/* User ID */}
                                 <div className="flex items-start gap-3">
-                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Email</span>
+                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">User ID</span>
+                                    <span className="text-on-surface text-sm font-mono">{selectedAdminProfile.id}</span>
+                                </div>
+
+                                {/* Email */}
+                                <div className="flex items-start gap-3">
+                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Email</span>
                                     <span className="text-on-surface text-sm break-all">{selectedAdminProfile.email}</span>
                                 </div>
+
+                                {/* Phone */}
                                 <div className="flex items-start gap-3">
-                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Phone</span>
+                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Phone</span>
                                     <span className="text-on-surface text-sm">{selectedAdminProfile.phone || 'N/A'}</span>
                                 </div>
+
+                                {/* Status */}
                                 <div className="flex items-start gap-3">
-                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Status</span>
+                                    <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Status</span>
                                     <span className={`text-sm font-bold ${selectedAdminProfile.active ? 'text-emerald-600' : 'text-rose-600'}`}>
                                         {selectedAdminProfile.active ? 'Active' : 'Inactive'}
                                     </span>
                                 </div>
+
+                                {/* Role */}
+                                {selectedAdminProfile.role && (
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Role</span>
+                                        <span className="text-on-surface text-sm">{selectedAdminProfile.role}</span>
+                                    </div>
+                                )}
+
+                                {/* Created Date */}
+                                {(selectedAdminProfile.createdAt || selectedAdminProfile.created_at) && (
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Created</span>
+                                        <span className="text-on-surface text-sm">
+                                            {new Date(selectedAdminProfile.createdAt || selectedAdminProfile.created_at).toLocaleDateString()} • {new Date(selectedAdminProfile.createdAt || selectedAdminProfile.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Updated Date */}
+                                {(selectedAdminProfile.updatedAt || selectedAdminProfile.updated_at) && (
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Updated</span>
+                                        <span className="text-on-surface text-sm">
+                                            {new Date(selectedAdminProfile.updatedAt || selectedAdminProfile.updated_at).toLocaleDateString()} • {new Date(selectedAdminProfile.updatedAt || selectedAdminProfile.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Last Login */}
                                 {selectedAdminProfile.lastLoginAt && (
                                     <div className="flex items-start gap-3">
-                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[80px]">Last Login</span>
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Last Login</span>
                                         <span className="text-on-surface text-sm">
-                                            {new Date(selectedAdminProfile.lastLoginAt).toLocaleDateString()}
+                                            {new Date(selectedAdminProfile.lastLoginAt).toLocaleDateString()} • {new Date(selectedAdminProfile.lastLoginAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
+                                    </div>
+                                )}
+
+                                {/* Full Name */}
+                                {selectedAdminProfile.fullName && selectedAdminProfile.fullName !== selectedAdminProfile.name && (
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Full Name</span>
+                                        <span className="text-on-surface text-sm">{selectedAdminProfile.fullName}</span>
+                                    </div>
+                                )}
+
+                                {/* Deleted Status */}
+                                {selectedAdminProfile.isDeleted !== undefined && (
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Deleted</span>
+                                        <span className="text-on-surface text-sm">{selectedAdminProfile.isDeleted ? 'Yes' : 'No'}</span>
                                     </div>
                                 )}
                             </div>
@@ -364,6 +463,26 @@ export default function ManagerDashboard() {
                     </div>
                 </div>
             )}
+
+            {/* Admin Profile Edit Modal */}
+            <Model isOpen={openModel === 'profile'} onClose={() => setOpenModel(null)} title="Edit Admin Profile">
+                <ProfileModel onClose={() => setOpenModel(null)} />
+            </Model>
+
+            {/* Admin Security/Password Modal */}
+            <Model isOpen={openModel === 'security'} onClose={() => setOpenModel(null)} title="Change Password">
+                <SecurityModel onClose={() => setOpenModel(null)} />
+            </Model>
+
+            {/* Create User Modal */}
+            <Model isOpen={openModel === 'createUser'} onClose={() => setOpenModel(null)} title="Create New User">
+                <CreateUserModel onClose={() => setOpenModel(null)} />
+            </Model>
+
+            {/* Admin Users Management Modal */}
+            <Model isOpen={openModel === 'admins'} onClose={() => setOpenModel(null)} title="All Admin Users">
+                <UserManagementModel onClose={() => setOpenModel(null)} filterRole={ROLES.SYSTEM_ADMIN} />
+            </Model>
         </motion.div>
     );
 }

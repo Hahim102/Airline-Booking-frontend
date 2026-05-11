@@ -11,7 +11,8 @@ import {
     CreditCard,
     Users,
     BarChart,
-    FileText
+    FileText,
+    UserPlus
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/roles';
@@ -25,6 +26,7 @@ import StaffModel from './models/StaffModel';
 import ReportsModel from './models/ReportsModel';
 import OverviewUpdateModel from './models/OverviewUpdateModel';
 import UserManagementModel from './models/UserManagementModel';
+import CreateUserModel from './models/CreateUserModel';
 
 export default function Sidebar({ currentRole, className = '' }) {
     const [openModel, setOpenModel] = useState(null);
@@ -52,6 +54,7 @@ export default function Sidebar({ currentRole, className = '' }) {
 
         { id: 'bookings', label: 'Booking Management', icon: FileText, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
         { id: 'users', label: 'User Management', icon: Users, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
+        { id: 'createUser', label: 'Create User', icon: UserPlus, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
         { id: 'settings', label: 'System Settings', icon: Settings, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
 
         { id: 'reports', label: 'Reports / Analytics', icon: BarChart, roles: [ROLES.AIRLINE_OWNER, ROLES.SYSTEM_ADMIN], type: 'model' },
@@ -151,6 +154,10 @@ export default function Sidebar({ currentRole, className = '' }) {
 
             <Model isOpen={openModel === 'users'} onClose={() => setOpenModel(null)} title="User Management">
                 <UserManagementModel onClose={() => setOpenModel(null)} />
+            </Model>
+
+            <Model isOpen={openModel === 'createUser'} onClose={() => setOpenModel(null)} title="Create New User">
+                <CreateUserModel onClose={() => setOpenModel(null)} />
             </Model>
 
             <Model isOpen={openModel === 'settings'} onClose={() => setOpenModel(null)} title="System Settings">

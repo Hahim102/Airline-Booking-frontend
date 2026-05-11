@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/roles';
@@ -6,43 +6,133 @@ import { ROLES } from '../utils/roles';
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isLoading, error } = useAuth();
+  const [errors, setErrors] = useState({});
+
+  const recaptchaRef = useRef(null);
+  const widgetIdRef = useRef(null);
+  
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const [recaptchaReady, setRecaptchaReady] = useState(false);
   const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    window.onRecaptchaSuccess = (token) => {
+      setRecaptchaToken(token);
+      setFormError('');
+    };
+
+    window.onRecaptchaLoad = () => {
+      setRecaptchaReady(true);
+    };
+
+    if (window.grecaptcha) {
+      setRecaptchaReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      recaptchaReady &&
+      recaptchaRef.current &&
+      window.grecaptcha
+    ) {
+      if (widgetIdRef.current === null) {
+        widgetIdRef.current =
+          window.grecaptcha.render(
+            recaptchaRef.current,
+            {
+              sitekey: '6Ld7DuEsAAAAAKB1D4Ej69jbBZyqLFDbA7BpplZl',
+              callback: window.onRecaptchaSuccess,
+            }
+          );
+      }
+    }
+  }, [recaptchaReady]);
+
+  const validateLogin = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = "Password is required";
+    }
+
+    if (!recaptchaToken) {
+      newErrors.captchaToken = "Captcha is required";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    setFormError('');
+
+    setFormError("");
+
+    if (name === "email" && !value.trim()) {
+      setErrors((prev) => ({
+        ...prev,
+        email: "Email is required",
+      }));
+    }
+
+    if (name === "password" && !value.trim()) {
+      setErrors((prev) => ({
+        ...prev,
+        password: "Password is required",
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
 
-    if (!formData.email || !formData.password) {
-      setFormError('Email and password are required');
-      return;
-    }
-    const result = await login(formData.email, formData.password);
 
-    if (result.success) {
-      const userRole = result.user?.role;
-      if (userRole?.includes(ROLES.SYSTEM_ADMIN)) {
-        navigate('/manager');
-      } else if (userRole?.includes(ROLES.AIRLINE_OWNER)) {
-        navigate('/owner');
+    if (!validateLogin()) return;
+
+    const result = await login(
+        formData.email,
+        formData.password,
+        recaptchaToken
+      );
+
+      if (result.success) {
+        const userRole = result.user?.role;
+
+        if (userRole?.includes(ROLES.SYSTEM_ADMIN)) {
+          navigate("/manager");
+        } else if (userRole?.includes(ROLES.AIRLINE_OWNER)) {
+          navigate("/owner");
+        } else {
+          navigate("/user");
+        }
       } else {
-        navigate('/user');
+        setFormError(result.error);
+
+        if (window.grecaptcha) {
+          window.grecaptcha.reset(widgetIdRef.current);
+        }
+
+        setRecaptchaToken("");
       }
-    } else {
-      setFormError(result.error);
-    }
+
   };
 
   return (
@@ -62,9 +152,18 @@ export const LoginPage = () => {
               onChange={handleChange}
               placeholder="e.g., username@gmail.com"
               disabled={isLoading}
-              className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className={`h-11 w-full rounded-md border px-3 text-sm outline-none transition
+                ${errors.email
+                  ? 'border-red-500 focus:ring-red-100'
+                  : 'border-slate-300 focus:border-blue-600 focus:ring-blue-100'
+                }`}
               required
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.email}
+              </p>
+            )}
           </div>
 
           <div className="mb-5">
@@ -80,7 +179,23 @@ export const LoginPage = () => {
               className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               required
             />
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.password}
+              </p>
+            )}
           </div>
+
+          {recaptchaReady && (
+            <div className="mb-5 flex justify-center">
+              <div ref={recaptchaRef} />
+            </div>
+          )}
+          {errors.captchaToken && (
+            <p className="mt-2 text-center text-sm text-red-500">
+              {errors.captchaToken}
+            </p>
+          )}
 
           {(formError || error) && (
             <div className="mb-5 rounded-md border-l-4 border-red-500 bg-red-50 px-3 py-2 text-sm text-red-700">

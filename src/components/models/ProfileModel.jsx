@@ -1,23 +1,84 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, User, Save, IdCard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { AuthValidation } from '../../validation';
 import apiClient from '../../api/apiClient';
 
 export default function ProfileModel({ onClose }) {
     const { user, setUser } = useAuth();
+    const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
         fullName: user?.fullName,
         email: user?.email || "user@example.com",
-        phone: user?.phone || "+1 234 567 890",
+        phone: user?.phone || "",
         // passPort: user?.passport || "ABC123456",
     });
 
+    const validate = () => {
+        const newErrors = {};
+
+        newErrors.fullName =
+            AuthValidation.fullName(formData.fullName);
+
+        newErrors.email =
+            AuthValidation.email(formData.email);
+
+        newErrors.phone =
+            AuthValidation.phone(formData.phone);
+
+        Object.keys(newErrors).forEach((key) => {
+            if (newErrors[key] === null) {
+                delete newErrors[key];
+            }
+        });
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleChange = (field, value) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+
+        let validationError = null;
+
+        switch (field) {
+            case "fullName":
+                validationError =
+                    AuthValidation.fullName(value);
+                break;
+
+            case "email":
+                validationError =
+                    AuthValidation.email(value);
+                break;
+
+            case "phone":
+                validationError =
+                    AuthValidation.phone(value);
+                break;
+
+            default:
+                break;
+        }
+
+        setErrors((prev) => ({
+            ...prev,
+            [field]: validationError,
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validate()) return;
+
         try {
-            console.log("FORM DATA BEFORE SEND:", formData);
             const res = await apiClient.put(`/auth/update-profile?userId=${user?.id}`, formData);
-            
+
             const updatedUser = res.data.user;
 
             console.log("Profile updated successfully:", updatedUser);
@@ -55,9 +116,20 @@ export default function ProfileModel({ onClose }) {
                         <input
                             type="text"
                             value={formData.fullName}
-                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm font-medium"
+                            onChange={(e) =>
+                                handleChange("fullName", e.target.value)
+                            }
+                            className={`w-full pl-10 pr-4 py-3 bg-surface-container-low border rounded-xl
+                                focus:ring-2 focus:ring-primary focus:border-transparent outline-none
+                                transition-all text-sm font-medium
+                                ${errors.fullName
+                                    ? "border-red-500"
+                                    : "border-outline-variant"
+                                }`}
                         />
+                        {errors.fullName && (
+                            <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
+                        )}
                     </div>
                 </div>
 
@@ -68,9 +140,22 @@ export default function ProfileModel({ onClose }) {
                         <input
                             type="email"
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm font-medium"
+                            onChange={(e) =>
+                                handleChange("email", e.target.value)
+                            }
+                            className={`w-full pl-10 pr-4 py-3 bg-surface-container-low border rounded-xl
+                            focus:ring-2 focus:ring-primary focus:border-transparent outline-none
+                            transition-all text-sm font-medium
+                                ${errors.email
+                                    ? "border-red-500"
+                                    : "border-outline-variant"
+                                }`}
                         />
+                        {errors.email && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.email}
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -81,9 +166,23 @@ export default function ProfileModel({ onClose }) {
                         <input
                             type="text"
                             value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm font-medium"
+                            onChange={(e) =>
+                                handleChange("phone", e.target.value)
+                            }
+                            placeholder="e.g., 0912345678"
+                            className={`w-full pl-10 pr-4 py-3 bg-surface-container-low border rounded-xl
+                            focus:ring-2 focus:ring-primary focus:border-transparent outline-none
+                            transition-all text-sm font-medium
+                                ${errors.phone
+                                    ? "border-red-500"
+                                    : "border-outline-variant"
+                                }`}
                         />
+                        {errors.phone && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.phone}
+                            </p>
+                        )}
                     </div>
                 </div>
 

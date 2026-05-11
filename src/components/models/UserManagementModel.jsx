@@ -1,24 +1,32 @@
 import { useState, useEffect } from 'react';
-import { Search, Trash2, Mail, Shield, UserX, CheckCircle2, AlertCircle, Loader } from 'lucide-react';
+import { Search, Trash2, Mail, Shield, UserX, CheckCircle2, AlertCircle, Loader, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { createPortal } from 'react-dom';
 import { useUsers } from '../../hooks/useUsers';
 
-export default function UserManagementModel({ onClose }) {
+export default function UserManagementModel({ 
+    onClose,
+    filterRole = null,
+    title = 'User Management'
+ }) {
     const { users, loading, error, fetchUsers, updateUserStatus, deleteUserById, searchUsers } = useUsers();
     const [searchTerm, setSearchTerm] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState(null);
-    const [actionLoading, setActionLoading] = useState(null); // Track which action is loading
+    const [actionLoading, setActionLoading] = useState(null);
+    const [selectedUserProfile, setSelectedUserProfile] = useState(null);
 
-    // Fetch users on component mount
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
-    const filteredUsers = searchUsers(searchTerm);
+    const searchedUsers = searchUsers(searchTerm);
 
-    /**
-     * Handle user deletion with API call
-     */
+    const filteredUsers = filterRole
+        ? searchedUsers.filter(
+            user => user.role === filterRole
+        )
+        : searchedUsers;
+
     const handleDelete = async (userId) => {
         try {
             setActionLoading(`delete-${userId}`);
@@ -127,6 +135,13 @@ export default function UserManagementModel({ onClose }) {
 
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
+                                        onClick={() => setSelectedUserProfile(user)}
+                                        className="p-2 text-outline hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                                        title="View User Details"
+                                    >
+                                        <Eye size={18} />
+                                    </button>
+                                    <button
                                         onClick={() => toggleStatus(user.id)}
                                         disabled={actionLoading === `status-${user.id}`}
                                         className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
@@ -214,7 +229,7 @@ export default function UserManagementModel({ onClose }) {
             )}
 
             <div className="pt-6 border-t border-outline-variant flex justify-between items-center text-[10px] font-bold text-outline uppercase tracking-widest">
-                <span>User Management Panel</span>
+                <span>{title}</span>
                 <button
                     onClick={onClose}
                     disabled={loading}
@@ -223,6 +238,148 @@ export default function UserManagementModel({ onClose }) {
                     Close Manager
                 </button>
             </div>
+
+            {/* User Detail Modal - Rendered at document body level */}
+            {selectedUserProfile && createPortal(
+                <AnimatePresence>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/40 flex items-center justify-center z-[150] p-4"
+                        onClick={() => setSelectedUserProfile(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-2xl w-full max-w-md custom-shadow overflow-hidden"
+                        >
+                            {/* Header */}
+                            <div className="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-primary">User Details</h3>
+                                <button
+                                    onClick={() => setSelectedUserProfile(null)}
+                                    className="text-outline hover:text-primary transition-colors text-2xl leading-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-6 space-y-6 max-h-[600px] overflow-y-auto">
+                                {/* Avatar and Name */}
+                                <div className="flex flex-col items-center text-center">
+                                    <img
+                                        src={selectedUserProfile.avatar}
+                                        alt={selectedUserProfile.name}
+                                        className="w-20 h-20 rounded-full object-cover border-4 border-primary/20 mb-4"
+                                    />
+                                    <h4 className="text-lg font-bold text-on-surface">{selectedUserProfile.name}</h4>
+                                    <p className="text-xs text-primary font-bold uppercase tracking-widest mt-1">
+                                        {selectedUserProfile.role || 'User'}
+                                    </p>
+                                </div>
+
+                                {/* Info Grid */}
+                                <div className="space-y-4">
+                                    {/* User ID */}
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">User ID</span>
+                                        <span className="text-on-surface text-sm font-mono">{selectedUserProfile.id}</span>
+                                    </div>
+
+                                    {/* Email */}
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Email</span>
+                                        <span className="text-on-surface text-sm break-all">{selectedUserProfile.email}</span>
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Phone</span>
+                                        <span className="text-on-surface text-sm">{selectedUserProfile.phone || 'N/A'}</span>
+                                    </div>
+
+                                    {/* Status */}
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Status</span>
+                                        <span className={`text-sm font-bold ${selectedUserProfile.active ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                            {selectedUserProfile.active ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </div>
+
+                                    {/* Role */}
+                                    {selectedUserProfile.role && (
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Role</span>
+                                            <span className="text-on-surface text-sm">{selectedUserProfile.role}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Created Date */}
+                                    {(selectedUserProfile.createdAt || selectedUserProfile.created_at) && (
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Created</span>
+                                            <span className="text-on-surface text-sm">
+                                                {new Date(selectedUserProfile.createdAt || selectedUserProfile.created_at).toLocaleDateString()} • {new Date(selectedUserProfile.createdAt || selectedUserProfile.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Updated Date */}
+                                    {(selectedUserProfile.updatedAt || selectedUserProfile.updated_at) && (
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Updated</span>
+                                            <span className="text-on-surface text-sm">
+                                                {new Date(selectedUserProfile.updatedAt || selectedUserProfile.updated_at).toLocaleDateString()} • {new Date(selectedUserProfile.updatedAt || selectedUserProfile.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Last Login */}
+                                    {selectedUserProfile.lastLoginAt && (
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Last Login</span>
+                                            <span className="text-on-surface text-sm">
+                                                {new Date(selectedUserProfile.lastLoginAt).toLocaleDateString()} • {new Date(selectedUserProfile.lastLoginAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Full Name */}
+                                    {selectedUserProfile.fullName && selectedUserProfile.fullName !== selectedUserProfile.name && (
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Full Name</span>
+                                            <span className="text-on-surface text-sm">{selectedUserProfile.fullName}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Deleted Status */}
+                                    {selectedUserProfile.isDeleted !== undefined && (
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-primary font-bold text-[10px] uppercase tracking-widest min-w-[100px]">Deleted</span>
+                                            <span className="text-on-surface text-sm">{selectedUserProfile.isDeleted ? 'Yes' : 'No'}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 border-t border-outline-variant bg-surface-container-low text-center">
+                                <button
+                                    onClick={() => setSelectedUserProfile(null)}
+                                    className="text-xs font-bold text-primary hover:bg-surface-container-highest px-4 py-2 rounded-lg transition-colors uppercase tracking-wide"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 }

@@ -1,48 +1,47 @@
-import { createContext, useState, useCallback, useEffect} from 'react';
-import apiClient, { setAuthStore } from '../api/apiClient';
+import { createContext, useState, useCallback, useEffect, useRef } from 'react';
+import { authService, tokenStorage, authHelpers } from '../api/authService';
+import { setAuthStore, clearAuthStore } from '../api/authStore';
 
 export const AuthContext = createContext(null);
 
-const ACCESS_TOKEN_STORAGE_KEY = 'airline.accessToken';
-
 export const AuthProvider = ({ children }) => {
+  const hasInitialized = useRef(false);
+  const refreshIntervalRef = useRef(null);
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true); // Track app initialization
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState(null);
 
+  const isTokenExpired = useCallback((token) => {
+    try {
+      if (!token) return true;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (!payload?.exp) return true;
+      return payload.exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
+  }, []);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email, password, captchaToken) => {
     setIsLoading(true);
     setError(null);
 
     try {
+      const response = await authService.login(email, password, captchaToken);
+      const { accessToken, user: userData } = response;
 
-      const response = await apiClient.post('/auth/login', {
-        email,
-        password,
-      },);
-
-
-      console.log("🔥 LOGIN RESPONSE:", response.data);
-
-      const { token, user } = response.data;
-
-      console.log("🔥 ROLE:", user.role);
-
-      setAccessToken(token);
-      localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
-
-      setUser(user);
+      setAccessToken(accessToken);
+      tokenStorage.setToken(accessToken);
+      setUser(userData);
 
       setAuthStore({
-        accessToken: token,
+        accessToken: accessToken,
         logout,
       });
 
-
-      return { success: true, user };
+      return { success: true, user: userData };
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Login failed';
       setError(errorMsg);
@@ -52,39 +51,29 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const register = useCallback(async (email, password, fullName, phone) => {
+
+  const register = useCallback(async (email, password, fullName, phone, captchaToken) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await apiClient.post('/auth/register', {
-        email,
-        password,
-        fullName,
-        phone,
-      });
+      const response = await authService.register(email, password, fullName, phone, captchaToken);
+      const { accessToken, user: userData } = response;
 
+      setAccessToken(accessToken);
+      tokenStorage.setToken(accessToken);
+      setUser(userData);
 
-      console.log(response.data);
-
-      const { token, user } = response.data;
-      
-
-      setAccessToken(token);
-      localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
-      setUser(user);
-      
       setAuthStore({
-        accessToken: token,
+        accessToken: accessToken,
         logout,
       });
 
 
-      const me = await apiClient.get('/users/me',);
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
 
-      setUser(me.data);
-
-      return { success: true, user: me.data };
+      return { success: true, user: currentUser };
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Registration failed';
       setError(errorMsg);
@@ -95,44 +84,39 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async ({ server = true } = {}) => {
     try {
-      await apiClient.post('/auth/logout');
+      if (server) {
+        await authService.logout();
+      }
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+      tokenStorage.removeToken();
       setAccessToken(null);
       setUser(null);
       setError(null);
+      clearAuthStore();
     }
   }, []);
 
 
-
   const hasRole = useCallback((role) => {
-    if (!user?.role) return false;
-    if (typeof user.role === 'string') {
-      return user.role.includes(role);
-    }
-    return Array.isArray(user.role) ? user.role.includes(role) : false;
+    return authHelpers.hasRole(user, role);
   }, [user]);
 
 
   const hasAnyRole = useCallback((roles) => {
-    if (!user?.role || !Array.isArray(roles)) return false;
-    // Handle both string and array formats for user.role
-    const userRoles = typeof user.role === 'string' ? user.role.split(',').map(r => r.trim()) : user.role;
-    return roles.some(role => userRoles.includes(role));
+    return authHelpers.hasAnyRole(user, roles);
   }, [user]);
+
 
   useEffect(() => {
     setAuthStore({
       accessToken,
       logout,
     });
-  },[accessToken, logout]);
-
+  }, [accessToken, logout]);
 
 
   useEffect(() => {
@@ -140,10 +124,10 @@ export const AuthProvider = ({ children }) => {
 
     const fetchMe = async () => {
       try {
-        const meRes = await apiClient.get('/users/me');
-        setUser(meRes.data);
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
       } catch (err) {
-        console.error('Fetch /users/me failed:', err);
+        console.error('Fetch current user failed:', err);
         setUser(null);
       }
     };
@@ -151,38 +135,68 @@ export const AuthProvider = ({ children }) => {
     fetchMe();
   }, [accessToken]);
 
+
   useEffect(() => {
     if (accessToken) return;
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
 
-    const fetchMe = async () => {
+    const initializeAuth = async () => {
       try {
-        const storedToken = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
-        if (storedToken) {
+        const storedToken = tokenStorage.getToken();
+        if (storedToken && !isTokenExpired(storedToken)) {
           setAccessToken(storedToken);
           setAuthStore({
             accessToken: storedToken,
             logout,
           });
 
-          const meRes = await apiClient.get('/users/me');
-          setUser(meRes.data);
+          try {
+            const userData = await authService.getCurrentUser();
+            setUser(userData);
+            return;
+          } catch (meError) {
+            if (
+              meError.response?.status === 401 ||
+              meError.response?.status === 403 ||
+              meError.response?.status === 500
+            ) {
+              tokenStorage.removeToken();
+              setAccessToken(null);
+            } else {
+              throw meError;
+            }
+          }
+        } else if (storedToken) {
+          tokenStorage.removeToken();
+        }
+        
+
+        let refreshResponse = null;
+
+        try {
+          refreshResponse = await authService.refresh();
+        } catch {
+          refreshResponse = null;
+        }
+
+        if (!refreshResponse?.accessToken) {
+          setUser(null);
           return;
         }
 
-        const refreshRes = await apiClient.post("/auth/refresh");
-        const token = refreshRes.data.token;
+        const { accessToken } = refreshResponse;
 
-        setAccessToken(token);
-        localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
+        setAccessToken(accessToken);
+        tokenStorage.setToken(accessToken);
 
         setAuthStore({
-          accessToken: token,
+          accessToken: accessToken,
           logout,
         });
 
-        const meRes = await apiClient.get('/users/me');
-        setUser(meRes.data);
-
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
       } catch (err) {
         console.log('No active session - user needs to login', err);
         setUser(null);
@@ -191,7 +205,7 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    fetchMe();
+    initializeAuth();
   }, []);
 
   const value = {
@@ -206,7 +220,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     hasRole,
     hasAnyRole,
-    isAuthenticated: !!user,
+    isAuthenticated: authHelpers.isAuthenticated(user),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

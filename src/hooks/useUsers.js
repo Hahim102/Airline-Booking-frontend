@@ -88,6 +88,22 @@ export const useUsers = () => {
     }
   }, []);
 
+  const createUser = useCallback(async (userData) => {
+    try {
+      setError(null);
+      const backendUser = await userService.createUser(userData);
+      const frontendUser = mapBackendUserToFrontendModel(backendUser);
+      setUsers((prevUsers) => [...prevUsers, frontendUser]);
+      return frontendUser;
+    } catch (err) {
+      const errorMessage =
+        err?.response?.data?.error || err?.message || 'Failed to create user';
+      setError(errorMessage);
+      console.error('Failed to create user:', err);
+      throw err;
+    }
+  }, []);
+
 
   const deleteUserById = useCallback(async (userId) => {
     try {
@@ -107,6 +123,8 @@ export const useUsers = () => {
       throw err;
     }
   }, []);
+
+
 
   const searchUsers = useCallback((searchTerm) => {
     if (!searchTerm.trim()) {
@@ -131,6 +149,7 @@ export const useUsers = () => {
     fetchUserById,
     fetchUserProfile,
     updateUserStatus,
+    createUser,
     deleteUserById,
     searchUsers,
   };

@@ -10,6 +10,7 @@ export default function TopNav({ onAvatarClick }) {
         name: user?.fullName,
         role: user?.role,
     };
+    console.log(import.meta.env.VITE_RECAPTCHA_SITE_KEY);
 
     const getInfo = () => {
         switch (userData.role) {
