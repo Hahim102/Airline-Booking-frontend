@@ -140,6 +140,55 @@ export const useUsers = () => {
     );
   }, [users]);
 
+  const searchAndFilterUsers = useCallback(async (filters = {}, pagination = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await userService.searchAndFilterUsers(filters, pagination);
+      
+      const usersList = response.content || response;
+      const frontendUsers = mapBackendUsersToFrontendModels(usersList);
+      
+      return {
+        users: frontendUsers,
+        totalElements: response.totalElements || frontendUsers.length,
+        totalPages: response.totalPages || 1,
+        currentPage: response.number || 0,
+        pageSize: response.size || frontendUsers.length,
+      };
+    } catch (err) {
+      const errorMessage =
+        err?.response?.data?.error || err?.message || 'Failed to search/filter users';
+      setError(errorMessage);
+      console.error('Failed to search/filter users:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateUserProfile = useCallback(async (userId, updateData) => {
+    try {
+      setError(null);
+      const backendUser = await userService.updateUserProfile(userId, updateData);
+      const frontendUser = mapBackendUserToFrontendModel(backendUser);
+      
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === String(userId) ? frontendUser : user
+        )
+      );
+
+      return frontendUser;
+    } catch (err) {
+      const errorMessage =
+        err?.response?.data?.error || err?.message || 'Failed to update user profile';
+      setError(errorMessage);
+      console.error(`Failed to update user profile:`, err);
+      throw err;
+    }
+  }, []);
+
   return {
     users,
     setUsers,
@@ -152,5 +201,7 @@ export const useUsers = () => {
     createUser,
     deleteUserById,
     searchUsers,
+    searchAndFilterUsers,
+    updateUserProfile,
   };
 };

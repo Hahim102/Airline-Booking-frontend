@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/roles';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isLoading, error } = useAuth();
   const [errors, setErrors] = useState({});
 
@@ -20,6 +21,26 @@ export const LoginPage = () => {
   const [recaptchaToken, setRecaptchaToken] = useState('');
   const [recaptchaReady, setRecaptchaReady] = useState(false);
   const [formError, setFormError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showErrorTimeout, setShowErrorTimeout] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.successMessage) {
+      setSuccessMessage(location.state.successMessage);
+      const timer = setTimeout(() => {
+        setSuccessMessage('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state?.successMessage]);
+
+  useEffect(() => {
+    return () => {
+      if (showErrorTimeout) {
+        clearTimeout(showErrorTimeout);
+      }
+    };
+  }, [showErrorTimeout]);
 
   useEffect(() => {
     window.onRecaptchaSuccess = (token) => {
@@ -83,7 +104,12 @@ export const LoginPage = () => {
       [name]: value,
     }));
 
+    // Clear error messages when user starts typing
     setFormError("");
+    if (showErrorTimeout) {
+      clearTimeout(showErrorTimeout);
+      setShowErrorTimeout(null);
+    }
 
     if (name === "email" && !value.trim()) {
       setErrors((prev) => ({
@@ -103,7 +129,10 @@ export const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
-
+    if (showErrorTimeout) {
+      clearTimeout(showErrorTimeout);
+      setShowErrorTimeout(null);
+    }
 
     if (!validateLogin()) return;
 
@@ -124,7 +153,15 @@ export const LoginPage = () => {
           navigate("/user");
         }
       } else {
-        setFormError(result.error);
+        const errorMessage = result.error || "Login failed. Please try again.";
+        setFormError(errorMessage);
+        
+        // Auto clear error after 6 seconds
+        const timeoutId = setTimeout(() => {
+          setFormError("");
+          setShowErrorTimeout(null);
+        }, 6000);
+        setShowErrorTimeout(timeoutId);
 
         if (window.grecaptcha) {
           window.grecaptcha.reset(widgetIdRef.current);
@@ -140,6 +177,14 @@ export const LoginPage = () => {
       <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <h1 className="mb-2 text-center text-sm font-bold text-blue-700">✈️ Airline Booking</h1>
         <h2 className="mb-7 text-center text-4xl font-bold text-slate-900">Sign In</h2>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-5 rounded-md border-l-4 border-green-500 bg-green-50 px-3 py-2 text-sm text-green-700 flex items-center gap-2">
+            <span className="text-lg">✓</span>
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
@@ -197,11 +242,16 @@ export const LoginPage = () => {
             </p>
           )}
 
-          {(formError || error) && (
-            <div className="mb-5 rounded-md border-l-4 border-red-500 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {formError || error}
+        {/* Error Message - Prominent Display */}
+        {(formError || error) && (
+          <div className="mb-5 rounded-md border-l-4 border-red-500 bg-red-50 px-3 py-3 text-sm text-red-700 flex items-start gap-2 animate-pulse">
+            <span className="text-lg font-bold mt-0.5">✕</span>
+            <div>
+              <p className="font-semibold">Login Failed</p>
+              <p className="text-red-600 mt-1">{formError || error}</p>
             </div>
-          )}
+          </div>
+        )}
 
           <button
             type="submit"
@@ -223,7 +273,12 @@ export const LoginPage = () => {
               Sign up
             </span>
           </div>
-          <small className="block"><a href="#forgot" className="font-medium text-blue-600 hover:underline">Forgot Password?</a></small>
+          <small className="block"><span
+            onClick={() => navigate('/forgot-password')}
+            className="font-medium text-blue-600 hover:underline cursor-pointer"
+          >
+            Forgot Password?
+          </span></small>
         </div>
       </div>
     </div>

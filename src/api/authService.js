@@ -20,6 +20,45 @@ export const authService = {
     }
   },
 
+  forgotPassword: async (email) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/forgot-password`, {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      throw error;
+    }
+  },
+
+  resetPassword: async (email, otp, newPassword) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/reset-password`, {
+        email,
+        otp,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  },
+
+  confirmResetPassword: async (email, otp) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/confirm-reset-password`, {
+        email,
+        otp,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Confirm reset password error:', error);
+      throw error;
+    }
+  },
+
 
   register: async (email, password, fullName, phone, captchaToken) => {
     try {
@@ -33,6 +72,33 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error('Register error:', error);
+      throw error;
+    }
+  },
+  
+  verifyOtp: async (email, otp) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/verify-otp`, {
+        email,
+        otp,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Verify OTP error:", error);
+      throw error;
+    }
+  },
+
+  confirmResetPasswordIntent: async (email, otp) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/confirm-reset-password-intent`, {
+        email,
+        otp,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Confirm reset password intent error:", error);
       throw error;
     }
   },

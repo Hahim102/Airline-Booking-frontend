@@ -5,6 +5,7 @@ import { PublicLayout } from './components/PublicLayout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { VerifyOtpPage } from './pages/VerifyOtpPage';
 import { HomePage } from './pages/HomePage';
 import BookingLandingView from './pages/BookingLandingView';
 import { MyBookingsPage } from './pages/MyBookingsPage';
@@ -14,6 +15,8 @@ import UserDashboard from './pages/UserDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
 import { useAuth } from './hooks/useAuth';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
 const PublicOnly = ({ children }) => {
   const { user, isInitializing, isLoading, isAuthenticated } = useAuth();
@@ -62,6 +65,35 @@ function App() {
               <PublicOnly>
                 <PublicLayout>
                   <RegisterPage />
+                </PublicLayout>
+              </PublicOnly>
+            }
+          />
+          <Route
+            path="/verify-otp"
+            element={
+              <PublicOnly>
+                <VerifyOtpPage />
+              </PublicOnly>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PublicOnly>
+                <PublicLayout>
+                  <ForgotPasswordPage />
+                </PublicLayout>
+              </PublicOnly>
+            }
+          />
+
+          <Route
+            path="/reset-password"
+            element={
+              <PublicOnly>
+                <PublicLayout>
+                  <ResetPasswordPage />
                 </PublicLayout>
               </PublicOnly>
             }

@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 
-export default function Model({ isOpen, onClose, title, children }) {
+export default function Model({ isOpen, onClose, title, children, fullScreen = false }) {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -20,10 +20,14 @@ export default function Model({ isOpen, onClose, title, children }) {
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden custom-shadow shadow-2xl"
+                        className={`relative bg-white rounded-3xl overflow-hidden custom-shadow shadow-2xl flex flex-col ${
+                            fullScreen
+                                ? 'w-[95vw] h-[92vh] max-w-none'
+                                : 'w-full max-w-2xl'
+                        }`}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-8 py-6 border-b border-outline-variant bg-surface-container-low">
+                        <div className="flex items-center justify-between px-8 py-6 border-b border-outline-variant bg-surface-container-low shrink-0">
                             <h3 className="text-xl font-bold text-primary tracking-tight">{title}</h3>
                             <button
                                 onClick={onClose}
@@ -34,7 +38,7 @@ export default function Model({ isOpen, onClose, title, children }) {
                         </div>
 
                         {/* Body */}
-                        <div className="p-8 max-h-[80vh] overflow-y-auto">
+                        <div className={`p-8 overflow-y-auto flex-1 ${fullScreen ? '' : 'max-h-[80vh]'}`}>
                             {children}
                         </div>
                     </motion.div>

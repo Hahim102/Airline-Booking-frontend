@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 
 export const RegisterPage = () => {
-  const { register, isLoading, error } = useAuth();
+  const { register, logout, isLoading, error } = useAuth();
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
@@ -47,6 +47,10 @@ export const RegisterPage = () => {
       }
     }
   }, [recaptchaReady]);
+
+  useEffect(() => {
+    logout({ server: false });
+  }, [logout]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -136,6 +140,7 @@ export const RegisterPage = () => {
       setFormError("Please complete the reCAPTCHA verification");
       return;
     }
+    await logout({ server: true });
 
     const result = await register(
       formData.email,
@@ -146,7 +151,10 @@ export const RegisterPage = () => {
     );
 
     if (result.success) {
-      navigate("/bookings", { replace: true });
+      navigate("/verify-otp", {
+        replace: true,
+        state: { email: formData.email },
+      });
     } else {
       setFormError(result.error || "Registration failed");
       window.grecaptcha?.reset();

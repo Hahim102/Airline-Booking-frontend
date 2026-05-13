@@ -95,6 +95,43 @@ export const userService = {
       throw error;
     }
   },
+
+  updateUserProfile: async (userId, updateData) => {
+    try {
+      const response = await apiClient.put(
+        `${USER_API}/${userId}`,
+        updateData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating user ${userId} profile:`, error);
+      throw error;
+    }
+  },
+
+  searchAndFilterUsers: async (filters = {}, pagination = {}) => {
+    try {
+      const params = new URLSearchParams();
+      
+      if (filters.fullName) params.append('fullName', filters.fullName);
+      if (filters.email) params.append('email', filters.email);
+      if (filters.phone) params.append('phone', filters.phone);
+      if (filters.role && filters.role !== 'ALL') params.append('role', filters.role);
+      if (filters.isActive !== undefined && filters.isActive !== null) 
+        params.append('isActive', filters.isActive);
+      
+      params.append('pageNumber', pagination.pageNumber || 0);
+      params.append('pageSize', pagination.pageSize || 10);
+      params.append('sortBy', pagination.sortBy || 'fullName');
+      params.append('sortOrder', pagination.sortOrder || 'ASC');
+
+      const response = await apiClient.get(`${USER_API}/search?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error searching/filtering users:', error);
+      throw error;
+    }
+  },
 };
 
 

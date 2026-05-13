@@ -32,6 +32,10 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(email, password, captchaToken);
       const { accessToken, user: userData } = response;
 
+      if (!accessToken || !userData) {
+        throw new Error("Login response missing accessToken or user");
+      }
+      
       setAccessToken(accessToken);
       tokenStorage.setToken(accessToken);
       setUser(userData);
@@ -58,22 +62,14 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await authService.register(email, password, fullName, phone, captchaToken);
-      const { accessToken, user: userData } = response;
-
-      setAccessToken(accessToken);
-      tokenStorage.setToken(accessToken);
-      setUser(userData);
-
-      setAuthStore({
-        accessToken: accessToken,
-        logout,
-      });
 
 
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-
-      return { success: true, user: currentUser };
+      return {
+        success: true,
+        message: response?.message || 'Registration successful',
+        title: response?.title,
+        user: response?.user,
+      };
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Registration failed';
       setError(errorMsg);
@@ -112,6 +108,7 @@ export const AuthProvider = ({ children }) => {
 
 
   useEffect(() => {
+    if (!accessToken) return;
     setAuthStore({
       accessToken,
       logout,
@@ -170,7 +167,7 @@ export const AuthProvider = ({ children }) => {
         } else if (storedToken) {
           tokenStorage.removeToken();
         }
-        
+
 
         let refreshResponse = null;
 
