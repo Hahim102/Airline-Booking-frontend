@@ -48,7 +48,7 @@ export default function CreateUserModel({ onClose }) {
             });
 
             const generatedPassword =
-                res?.data?.password ||
+                res?.password ||
                 "******";
 
             setSuccessData({
@@ -64,15 +64,15 @@ export default function CreateUserModel({ onClose }) {
                 role: 'ROLE_USER',
             });
         } catch (err) {
-            const statusCode = err?.response?.status;
-            const errorMessage = err?.response?.data?.message;
+            const statusCode = err?.status || err?.code;
+            const errorMessage = err?.message;
 
-            if (statusCode === 403 || statusCode === 409) {
+            if (statusCode === 409) {
                 setLocalError('Email address already exists. Please use a different email.');
             } else if (statusCode === 400) {
                 setLocalError(errorMessage || 'Invalid data. Please check all fields.');
             } else {
-                setLocalError(errorMessage || err?.message || 'Failed to create user');
+                setLocalError(errorMessage || 'Failed to create user');
             }
         }
     };

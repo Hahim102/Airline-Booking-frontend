@@ -21,7 +21,7 @@ export const useUsers = () => {
       setUsers(frontendUsers);
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to fetch users';
+        err?.message || 'Failed to fetch users';
       setError(errorMessage);
       console.error('Failed to fetch users:', err);
     } finally {
@@ -38,7 +38,7 @@ export const useUsers = () => {
       return mapBackendUserToFrontendModel(backendUser);
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to fetch user';
+        err?.message || 'Failed to fetch users';
       setError(errorMessage);
       console.error(`Failed to fetch user ${userId}:`, err);
       throw err;
@@ -56,7 +56,7 @@ export const useUsers = () => {
       return mapBackendUserToFrontendModel(backendUser);
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to fetch user profile';
+        err?.message || 'Failed to fetch user profile';
       setError(errorMessage);
       console.error(`Failed to fetch user profile:`, err);
       throw err;
@@ -81,7 +81,7 @@ export const useUsers = () => {
       return true;
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to update user status';
+        err?.message || 'Failed to update user status';
       setError(errorMessage);
       console.error(`Failed to update user ${userId} status:`, err);
       throw err;
@@ -97,7 +97,7 @@ export const useUsers = () => {
       return frontendUser;
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to create user';
+        err?.message || 'Failed to create user';
       setError(errorMessage);
       console.error('Failed to create user:', err);
       throw err;
@@ -117,7 +117,7 @@ export const useUsers = () => {
       return true;
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to delete user';
+        err?.message || 'Failed to delete user';
       setError(errorMessage);
       console.error(`Failed to delete user ${userId}:`, err);
       throw err;
@@ -146,8 +146,11 @@ export const useUsers = () => {
       setError(null);
       const response = await userService.searchAndFilterUsers(filters, pagination);
       
-      const usersList = response.content || response;
-      const frontendUsers = mapBackendUsersToFrontendModels(usersList);
+      const backendUsers = response.content || [];
+
+      const frontendUsers = mapBackendUsersToFrontendModels(backendUsers);
+
+      setUsers(frontendUsers);
       
       return {
         users: frontendUsers,
@@ -158,7 +161,7 @@ export const useUsers = () => {
       };
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to search/filter users';
+        err?.message || 'Failed to search/filter users';
       setError(errorMessage);
       console.error('Failed to search/filter users:', err);
       throw err;
@@ -182,7 +185,7 @@ export const useUsers = () => {
       return frontendUser;
     } catch (err) {
       const errorMessage =
-        err?.response?.data?.error || err?.message || 'Failed to update user profile';
+        err?.message || 'Failed to update user profile';
       setError(errorMessage);
       console.error(`Failed to update user profile:`, err);
       throw err;

@@ -140,7 +140,7 @@ export const RegisterPage = () => {
       setFormError("Please complete the reCAPTCHA verification");
       return;
     }
-    await logout({ server: true });
+    await logout({ server: false });
 
     const result = await register(
       formData.email,
@@ -156,7 +156,7 @@ export const RegisterPage = () => {
         state: { email: formData.email },
       });
     } else {
-      setFormError(result.error || "Registration failed");
+      setFormError(result.message || "Registration failed");
       window.grecaptcha?.reset();
       setRecaptchaToken("");
     }

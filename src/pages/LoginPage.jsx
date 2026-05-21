@@ -104,7 +104,6 @@ export const LoginPage = () => {
       [name]: value,
     }));
 
-    // Clear error messages when user starts typing
     setFormError("");
     if (showErrorTimeout) {
       clearTimeout(showErrorTimeout);
@@ -129,6 +128,7 @@ export const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
+
     if (showErrorTimeout) {
       clearTimeout(showErrorTimeout);
       setShowErrorTimeout(null);
@@ -152,11 +152,15 @@ export const LoginPage = () => {
         } else {
           navigate("/user");
         }
-      } else {
-        const errorMessage = result.error || "Login failed. Please try again.";
+        return
+      }
+        const errorMessage =
+          result.message ||
+          error ||
+          "Login failed. Please try again.";
+
         setFormError(errorMessage);
         
-        // Auto clear error after 6 seconds
         const timeoutId = setTimeout(() => {
           setFormError("");
           setShowErrorTimeout(null);
@@ -168,7 +172,6 @@ export const LoginPage = () => {
         }
 
         setRecaptchaToken("");
-      }
 
   };
 

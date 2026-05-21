@@ -2,22 +2,12 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-/**
- * MyBookingsPage
- * - Accessible to: Customers (ROLE_USER) - Authenticated users only
- * - Shows flight bookings and booking history
- */
+
 export const MyBookingsPage = () => {
   const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState('UPCOMING');
   const navigate = useNavigate();
 
-  // TODO: Fetch real bookings from API using user.id
-  // const [bookings] = useState(user?.bookings || []);
-  // TODO: Fetch real travel summary from API
-  // const travelSummary = user?.travelSummary || { miles: 24502, flights: 12, status: 'Platinum Elite' };
-
-  // Show login prompt for unauthenticated users
   if (!isAuthenticated) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-8">

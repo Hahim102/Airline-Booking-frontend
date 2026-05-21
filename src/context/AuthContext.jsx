@@ -35,9 +35,10 @@ export const AuthProvider = ({ children }) => {
       if (!accessToken || !userData) {
         throw new Error("Login response missing accessToken or user");
       }
-      
+
       setAccessToken(accessToken);
       tokenStorage.setToken(accessToken);
+      tokenStorage.setUser(userData);
       setUser(userData);
 
       setAuthStore({
@@ -45,11 +46,15 @@ export const AuthProvider = ({ children }) => {
         logout,
       });
 
-      return { success: true, user: userData };
+      return {
+        success: true,
+        message: 'Login successful',
+        user: userData,
+      };
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Login failed';
+      const errorMsg = err?.message || 'Login failed';
       setError(errorMsg);
-      return { success: false, error: errorMsg };
+      return { success: false, message: errorMsg };
     } finally {
       setIsLoading(false);
     }
@@ -71,9 +76,9 @@ export const AuthProvider = ({ children }) => {
         user: response?.user,
       };
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Registration failed';
+      const errorMsg = err?.message || 'Registration failed';
       setError(errorMsg);
-      return { success: false, error: errorMsg };
+      return { success: false, message: errorMsg };
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +94,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', err);
     } finally {
       tokenStorage.removeToken();
+      tokenStorage.removeUser();
       setAccessToken(null);
       setUser(null);
       setError(null);
@@ -108,32 +114,6 @@ export const AuthProvider = ({ children }) => {
 
 
   useEffect(() => {
-    if (!accessToken) return;
-    setAuthStore({
-      accessToken,
-      logout,
-    });
-  }, [accessToken, logout]);
-
-
-  useEffect(() => {
-    if (!accessToken) return;
-
-    const fetchMe = async () => {
-      try {
-        const userData = await authService.getCurrentUser();
-        setUser(userData);
-      } catch (err) {
-        console.error('Fetch current user failed:', err);
-        setUser(null);
-      }
-    };
-
-    fetchMe();
-  }, [accessToken]);
-
-
-  useEffect(() => {
     if (accessToken) return;
     if (hasInitialized.current) return;
     hasInitialized.current = true;
@@ -141,36 +121,24 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       try {
         const storedToken = tokenStorage.getToken();
+        const storedUser = tokenStorage.getUser();
+
         if (storedToken && !isTokenExpired(storedToken)) {
           setAccessToken(storedToken);
+          setUser(storedUser);
           setAuthStore({
             accessToken: storedToken,
             logout,
           });
-
-          try {
-            const userData = await authService.getCurrentUser();
-            setUser(userData);
-            return;
-          } catch (meError) {
-            if (
-              meError.response?.status === 401 ||
-              meError.response?.status === 403 ||
-              meError.response?.status === 500
-            ) {
-              tokenStorage.removeToken();
-              setAccessToken(null);
-            } else {
-              throw meError;
-            }
-          }
+          setIsInitializing(false);
+          return;
         } else if (storedToken) {
           tokenStorage.removeToken();
+          tokenStorage.removeUser();
         }
 
 
         let refreshResponse = null;
-
         try {
           refreshResponse = await authService.refresh();
         } catch {
@@ -178,24 +146,31 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (!refreshResponse?.accessToken) {
+          tokenStorage.removeUser();
           setUser(null);
+          setIsInitializing(false);
           return;
         }
 
         const { accessToken } = refreshResponse;
-
         setAccessToken(accessToken);
         tokenStorage.setToken(accessToken);
-
         setAuthStore({
           accessToken: accessToken,
           logout,
         });
 
-        const userData = await authService.getCurrentUser();
-        setUser(userData);
+
+        try {
+          const userData = await authService.getCurrentUser();
+          setUser(userData);
+          tokenStorage.setUser(userData);
+        } catch (err) {
+          console.error('Failed to get current user:', err);
+        }
       } catch (err) {
         console.log('No active session - user needs to login', err);
+        tokenStorage.removeUser();
         setUser(null);
       } finally {
         setIsInitializing(false);

@@ -39,8 +39,10 @@ export const ForgotPasswordPage = () => {
                 });
             }, 2000);
         } catch (err) {
+            console.error("Forgot password error:", err?.message || err);
+
             setFormError(
-                err.response?.data?.message ||
+                err?.message ||
                 "Unable to send OTP. Please try again."
             );
         } finally {

@@ -30,18 +30,6 @@ export default function ManagerDashboard() {
         fetchUsers();
     }, [fetchUsers]);
 
-    const adminUsers = users.filter(u => u.role === ROLES.SYSTEM_ADMIN);
-
-    const handleToggleActive = async (userId, currentStatus) => {
-        try {
-            setTogglingUserId(userId);
-            await updateUserStatus(userId, !currentStatus);
-        } catch (err) {
-            console.error('Failed to toggle status:', err);
-        } finally {
-            setTogglingUserId(null);
-        }
-    };
 
     return (
         <motion.div
@@ -212,8 +200,10 @@ export default function ManagerDashboard() {
                 </div>
             </div>
 
+
+            {/*
             <div className="grid grid-cols-12 gap-6">
-                {/* Recent Bookings */}
+                 Recent Bookings 
                 <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl border border-outline-variant custom-shadow overflow-hidden">
                     <div className="p-6 border-b border-outline-variant bg-surface-container-low">
                         <h3 className="text-lg font-bold text-primary">Recent Bookings</h3>
@@ -252,68 +242,9 @@ export default function ManagerDashboard() {
                         ))}
                     </div>
                 </div>
-
-                {/* Admin User Management */}
-                <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl border border-outline-variant custom-shadow flex flex-col overflow-hidden">
-                    <div className="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-primary">Admin User Management</h3>
-                        <button 
-                            onClick={() => setOpenModel('createUser')}
-                            className="text-outline hover:text-primary transition-colors focus:outline-none"
-                        >
-                            <UserPlus size={20} />
-                        </button>
-                    </div>
-                    <div className="p-6 space-y-6 flex-1 overflow-y-auto">
-                        {loading && !adminUsers.length ? (
-                            <p className="text-center text-outline">Loading admin users...</p>
-                        ) : error ? (
-                            <p className="text-center text-error text-sm">{error}</p>
-                        ) : adminUsers.length === 0 ? (
-                            <p className="text-center text-outline">No admin users found</p>
-                        ) : (
-                            adminUsers.map((admin) => (
-                                <div key={admin.id} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <img src={admin.avatar} className="w-10 h-10 rounded-full object-cover border border-outline-variant" alt={admin.name} />
-                                        <div>
-                                            <p className="text-sm font-bold text-on-surface">{admin.name}</p>
-                                            <p className="text-[10px] text-outline font-semibold uppercase">{admin.email}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <button
-                                            onClick={() => setSelectedAdminProfile(admin)}
-                                            className="text-[11px] font-bold text-primary hover:underline uppercase tracking-wide"
-                                        >
-                                            View Profile
-                                        </button>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={admin.active}
-                                                onChange={() => handleToggleActive(admin.id, admin.active)}
-                                                disabled={togglingUserId === admin.id}
-                                                className="sr-only peer"
-                                            />
-                                            <div className="w-8 h-4 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary opacity-60 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
-                                        </label>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                    <div className="p-4 border-t border-outline-variant text-center">
-
-                        <button
-                            onClick={() => setOpenModel('admins')}
-                            className="text-xs font-bold text-primary hover:underline uppercase tracking-wider"
-                        >
-                            See All Admin Users
-                        </button>
-                    </div>
-                </div>
             </div>
+
+            */}
 
             <div className="mt-8 bg-white rounded-2xl border border-outline-variant custom-shadow overflow-hidden">
                 <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
@@ -477,11 +408,6 @@ export default function ManagerDashboard() {
             {/* Create User Modal */}
             <Model isOpen={openModel === 'createUser'} onClose={() => setOpenModel(null)} title="Create New User">
                 <CreateUserModel onClose={() => setOpenModel(null)} />
-            </Model>
-
-            {/* Admin Users Management Modal */}
-            <Model isOpen={openModel === 'admins'} onClose={() => setOpenModel(null)} title="All Admin Users">
-                <UserManagementModel onClose={() => setOpenModel(null)} filterRole={ROLES.SYSTEM_ADMIN} />
             </Model>
         </motion.div>
     );

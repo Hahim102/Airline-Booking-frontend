@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, User, Save, IdCard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthValidation } from '../../validation';
-import apiClient from '../../api/apiClient';
+import { authService } from '../../api/authService';
 
 export default function ProfileModel({ onClose }) {
     const { user, setUser } = useAuth();
     const [errors, setErrors] = useState({});
+    const [formError, setFormError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         fullName: user?.fullName,
         email: user?.email || "user@example.com",
@@ -73,26 +75,38 @@ export default function ProfileModel({ onClose }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setFormError('');
 
         if (!validate()) return;
 
+        setIsLoading(true);
         try {
-            const res = await apiClient.put(`/auth/update-profile?userId=${user?.id}`, formData);
+            const updatedUserData = await authService.updateUserProfile(user?.id, formData);
 
-            const updatedUser = res.data.user;
+            console.log("Profile updated successfully:", updatedUserData);
 
-            console.log("Profile updated successfully:", updatedUser);
-
-            setUser(updatedUser)
+            setUser(updatedUserData);
             onClose();
         }
         catch (error) {
-            console.error("Error updating profile:", error);
+            console.error("Error updating profile:", error?.message || error);
+
+            setFormError(
+                error?.message ||
+                "Failed to update profile"
+            );
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
+            {formError && (
+                <div className="p-4 bg-error/10 border border-error rounded-xl">
+                    <p className="text-sm font-medium text-error">{formError}</p>
+                </div>
+            )}
             <div className="flex flex-col items-center mb-8">
                 <div className="h-24 w-24 rounded-3xl bg-primary/10 overflow-hidden border-4 border-white custom-shadow relative group">
                     <img
@@ -204,16 +218,18 @@ export default function ProfileModel({ onClose }) {
                 <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-outline hover:bg-surface-container-low transition-all"
+                    disabled={isLoading}
+                    className="px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-outline hover:bg-surface-container-low transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    className="px-8 py-2.5 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all custom-shadow flex items-center gap-2"
+                    disabled={isLoading}
+                    className="px-8 py-2.5 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all custom-shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Save size={16} />
-                    Save Changes
+                    {isLoading ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
         </form>

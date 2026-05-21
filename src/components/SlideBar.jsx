@@ -25,7 +25,7 @@ import FleetModel from './models/FleetModel';
 import StaffModel from './models/StaffModel';
 import ReportsModel from './models/ReportsModel';
 import OverviewUpdateModel from './models/OverviewUpdateModel';
-import NewUserManagementModel from './models/NewUserManagementModel';
+import UserManagementModel from './models/UserManagementModel';
 import CreateUserModel from './models/CreateUserModel';
 
 export default function Sidebar({ currentRole, className = '' }) {
@@ -153,7 +153,7 @@ export default function Sidebar({ currentRole, className = '' }) {
             </Model>
 
             <Model isOpen={openModel === 'users'} onClose={() => setOpenModel(null)} title="Access Management" fullScreen>
-                <NewUserManagementModel onClose={() => setOpenModel(null)} />
+                <UserManagementModel onClose={() => setOpenModel(null)} />
             </Model>
 
             <Model isOpen={openModel === 'createUser'} onClose={() => setOpenModel(null)} title="Create New User">

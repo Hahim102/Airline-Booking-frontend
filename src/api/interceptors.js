@@ -16,6 +16,18 @@ const onRefreshed = (token) => {
   refreshSubscribers = [];
 };
 
+const normalizeApiError = (error) => {
+  const apiError = error.response?.data;
+
+  return {
+    status: error.response?.status,
+    code: apiError?.code,
+    message: apiError?.message || error.message || 'Something went wrong',
+    data: apiError?.data,
+    path: apiError?.path,
+  };
+};
+
 export const setupInterceptors = (apiClient) => {
   apiClient.interceptors.request.use(
     (config) => {
@@ -28,7 +40,7 @@ export const setupInterceptors = (apiClient) => {
       return config;
     },
     (error) => {
-      return Promise.reject(error);
+      return Promise.reject(normalizeApiError(error));
     }
   );
 
@@ -51,7 +63,7 @@ export const setupInterceptors = (apiClient) => {
           return new Promise((resolve, reject) => {
             subscribeTokenRefresh((token) => {
               if (!token) {
-                reject(error);
+                reject(normalizeApiError(error));
                 return;
               }
 
@@ -72,7 +84,8 @@ export const setupInterceptors = (apiClient) => {
             }
           );
 
-          const { accessToken } = response.data;
+          const authData = response.data.data;
+          const accessToken = authData.accessToken;
 
           setAuthStore({
             accessToken,
@@ -97,7 +110,7 @@ export const setupInterceptors = (apiClient) => {
             await currentAuthStore.logout({ server: false });
           }
 
-          return Promise.reject(refreshError);
+          return Promise.reject(normalizeApiError(refreshError));
         } finally {
           isRefreshing = false;
         }

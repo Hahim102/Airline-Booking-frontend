@@ -106,17 +106,21 @@ export const VerifyOtpPage = () => {
     try {
       const response = await authService.verifyOtp(email, otpCode);
       setIsVerified(true);
-      setSuccessMessage(response?.message || 'Verification successful! Redirecting...');
+      setSuccessMessage('Verification successful! Redirecting...');
 
       setTimeout(() => {
         navigate('/login', {
           replace: true,
-          state: { message: 'Account verified successfully. Please log in.' },
+          state: { successMessage: 'Account verified successfully. Please log in.' },
         });
       }, 2000);
     } catch (err) {
+      console.error('OTP verification error:', err?.message || err);
+
       const errorMsg =
-        err.response?.data?.message || err.response?.data || 'OTP verification failed. Please try again.';
+        err?.message ||
+        'OTP verification failed. Please try again.';
+
       setFormError(errorMsg);
       setOtp(new Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();

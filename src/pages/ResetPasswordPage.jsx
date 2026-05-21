@@ -39,16 +39,18 @@ export const ResetPasswordPage = () => {
 
         try {
             setIsLoading(true);
-            // Call new endpoint to confirm/verify OTP
             await authService.confirmResetPassword(email, otp);
             
             setOtpVerified(true);
             setSuccessMessage("OTP verified successfully. Please enter your new password.");
         } catch (err) {
+            console.error("Confirm reset password error:", err?.message || err);
+
             setFormError(
-                err.response?.data?.message ||
+                err?.message ||
                 "Invalid OTP. Please try again."
             );
+
             setOtp("");
         } finally {
             setIsLoading(false);
@@ -90,10 +92,14 @@ export const ResetPasswordPage = () => {
                 });
             }, 2000);
         } catch (err) {
-            const errorMsg = err.response?.data?.message || "Password reset failed. Please try again.";
+            console.error("Reset password error:", err?.message || err);
+
+            const errorMsg =
+                err?.message ||
+                "Password reset failed. Please try again.";
+                
             setFormError(errorMsg);
             
-            // If OTP expired or not verified, allow user to verify OTP again
             if (errorMsg.toLowerCase().includes("otp") || errorMsg.toLowerCase().includes("expired")) {
                 setOtpVerified(false);
                 setOtp("");

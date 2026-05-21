@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ShieldCheck, Key, Smartphone, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import apiClient from '../../api/apiClient';
+import { authService } from '../../api/authService';
 import { AuthValidation } from '../../validation';
 
 export default function SecurityModel({ onClose }) {
@@ -99,20 +99,24 @@ export default function SecurityModel({ onClose }) {
             setLoading(true);
             setFormError('');
 
-            await apiClient.put(
-                `/auth/update-password?userId=${user?.id}`,
-                {
-                    currentPassword: passwords.current,
-                    newPassword: passwords.new,
-                }
+            await authService.updatePassword(
+                user?.id,
+                passwords.current,
+                passwords.new
             );
 
             onClose();
         } catch (error) {
-            console.error("Change password error:", error);
+            console.error("Change password error:", error?.message || error);
+
+            if (error?.data) {
+                setErrors(error.data);
+                setFormError(error?.message || "Validation failed");
+                return;
+            }
 
             setFormError(
-                error.response?.data?.message ||
+                error?.message ||
                 "Failed to change password"
             );
         } finally {

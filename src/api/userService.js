@@ -10,7 +10,7 @@ export const userService = {
       const response = await apiClient.post(`${USER_API}/create-user`, 
         userData
       );
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;
@@ -24,7 +24,7 @@ export const userService = {
           'X-User-Email': email,
         },
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       throw error;
@@ -38,7 +38,7 @@ export const userService = {
           'X-User-Email': email,
         },
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching current user profile:', error);
       throw error;
@@ -48,7 +48,7 @@ export const userService = {
   getUserById: async (userId) => {
     try {
       const response = await apiClient.get(`${USER_API}/${userId}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error(`Error fetching user ${userId}:`, error);
       throw error;
@@ -58,7 +58,7 @@ export const userService = {
   getAllUsers: async () => {
     try {
       const response = await apiClient.get(USER_API);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching all users:', error);
       throw error;
@@ -76,7 +76,7 @@ export const userService = {
           },
         }
       );
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error(`Error updating user ${userId} status:`, error);
       throw error;
@@ -88,8 +88,8 @@ export const userService = {
 
   deleteUser: async (userId) => {
     try {
-      const response = await apiClient.delete(`${USER_API}/${userId}`);
-      return response.data;
+      const response = await apiClient.delete(`${USER_API}/${userId}/delete`);
+      return response.data.data;
     } catch (error) {
       console.error(`Error deleting user ${userId}:`, error);
       throw error;
@@ -99,10 +99,10 @@ export const userService = {
   updateUserProfile: async (userId, updateData) => {
     try {
       const response = await apiClient.put(
-        `${USER_API}/${userId}`,
+        `${USER_API}/${userId}/update-user-profile`,
         updateData
       );
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error(`Error updating user ${userId} profile:`, error);
       throw error;
@@ -126,7 +126,7 @@ export const userService = {
       params.append('sortOrder', pagination.sortOrder || 'ASC');
 
       const response = await apiClient.get(`${USER_API}/search?${params.toString()}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error searching/filtering users:', error);
       throw error;
@@ -149,6 +149,7 @@ export const mapBackendUserToFrontendModel = (
     lastLoginAt: backendUser.lastLoginAt,
     avatar: `${defaultAvatar}${backendUser.email}`,
     passport: '',
+    password: backendUser.password,
   };
 };
 

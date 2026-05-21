@@ -12,8 +12,10 @@ export const authService = {
         password,
         captchaToken,
       });
-      console.log('Login response:', response.data);
-      return response.data;
+
+      console.log('Login response:', response.data.data);
+
+      return response.data.data;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -25,7 +27,7 @@ export const authService = {
       const response = await apiClient.post(`${AUTH_API}/forgot-password`, {
         email,
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Forgot password error:', error);
       throw error;
@@ -39,7 +41,7 @@ export const authService = {
         otp,
         newPassword,
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Reset password error:', error);
       throw error;
@@ -52,7 +54,7 @@ export const authService = {
         email,
         otp,
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Confirm reset password error:', error);
       throw error;
@@ -69,7 +71,7 @@ export const authService = {
         phone,
         captchaToken,
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Register error:', error);
       throw error;
@@ -83,32 +85,20 @@ export const authService = {
         otp,
       });
 
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error("Verify OTP error:", error);
       throw error;
     }
   },
 
-  confirmResetPasswordIntent: async (email, otp) => {
-    try {
-      const response = await apiClient.post(`${AUTH_API}/confirm-reset-password-intent`, {
-        email,
-        otp,
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Confirm reset password intent error:", error);
-      throw error;
-    }
-  },
-
-
   logout: async () => {
     try {
-      await apiClient.post(`${AUTH_API}/logout`);
+      const response = await apiClient.post(`${AUTH_API}/logout`);
+      return response.data.data;
     } catch (error) {
       console.error('Logout error:', error);
+      throw error;
     }
   },
 
@@ -118,11 +108,14 @@ export const authService = {
       const response = await apiClient.post(`${AUTH_API}/refresh`, {}, {
         withCredentials: true,
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
-      if (error.response?.status === 401 ||
-        error.response?.status === 403) {
-
+      if (
+        error.response?.status === 401 ||
+        error.response?.status === 403 ||
+        error.status === 401 ||
+        error.status === 403
+      ) {
         return null;
       }
 
@@ -136,9 +129,33 @@ export const authService = {
   getCurrentUser: async () => {
     try {
       const response = await apiClient.get('/users/me');
-      return response.data;
+      
+      return response.data.data;
     } catch (error) {
       console.error('Get current user error:', error);
+      throw error;
+    }
+  },
+
+  updateUserProfile: async (userId, profileData) => {
+    try {
+      const response = await apiClient.put(`${AUTH_API}/update-profile?userId=${userId}`, profileData);
+      return response.data.data;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    }
+  },
+
+  updatePassword: async (userId, currentPassword, newPassword) => {
+    try {
+      const response = await apiClient.put(`${AUTH_API}/update-password?userId=${userId}`, {
+        currentPassword,
+        newPassword,
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Update password error:', error);
       throw error;
     }
   },
@@ -163,6 +180,23 @@ export const tokenStorage = {
 
   hasToken: () => {
     return !!localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+  },
+
+  setUser: (user) => {
+    localStorage.setItem('airline.user', JSON.stringify(user));
+  },
+
+  getUser: () => {
+    const user = localStorage.getItem('airline.user');
+    try {
+      return user ? JSON.parse(user) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  removeUser: () => {
+    localStorage.removeItem('airline.user');
   },
 };
 
