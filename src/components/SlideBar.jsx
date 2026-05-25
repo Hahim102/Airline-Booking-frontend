@@ -17,19 +17,19 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/roles';
 import { useNavigate } from 'react-router-dom';
-import Model from './ui/Model';
-import ProfileModel from './models/ProfileModel';
-import SecurityModel from './models/SecurityModel';
-import PreferencesModel from './models/PreferencesModel';
-import FleetModel from './models/FleetModel';
-import StaffModel from './models/StaffModel';
-import ReportsModel from './models/ReportsModel';
-import OverviewUpdateModel from './models/OverviewUpdateModel';
-import UserManagementModel from './models/UserManagementModel';
-import CreateUserModel from './models/CreateUserModel';
+import Modal from './ui/Modal';
+import ProfileModal from './modals/ProfileModal';
+import SecurityModal from './modals/SecurityModal';
+import PreferencesModal from './modals/PreferencesModal';
+import FleetModal from './modals/FleetModal';
+import StaffModal from './modals/StaffModal';
+import ReportsModal from './modals/ReportsModal';
+import OverviewUpdateModal from './modals/OverviewUpdateModal';
+import UserManagementModal from './modals/UserManagementModal';
+import CreateUserModal from './modals/CreateUserModal';
 
 export default function Sidebar({ currentRole, className = '' }) {
-    const [openModel, setOpenModel] = useState(null);
+    const [openModal, setOpenModal] = useState(null);
 
     const { user, logout } = useAuth();
     const role = user?.role;
@@ -41,27 +41,27 @@ export default function Sidebar({ currentRole, className = '' }) {
     };
 
     const menuItems = [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard, roles: [ROLES.USER, ROLES.AIRLINE_OWNER, ROLES.SYSTEM_ADMIN], type: 'tab' },
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard, roles: [ROLES.USER, ROLES.AIRLINE_OWNER], type: 'tab' },
 
-        { id: 'profile', label: 'Profile', icon: User, roles: [ROLES.USER], type: 'model' },
-        { id: 'security', label: 'Security', icon: Shield, roles: [ROLES.USER], type: 'model' },
-        { id: 'preferences', label: 'Preferences', icon: Settings, roles: [ROLES.USER], type: 'model' },
+        { id: 'profile', label: 'Profile', icon: User, roles: [ROLES.USER], type: 'modal' },
+        { id: 'security', label: 'Security', icon: Shield, roles: [ROLES.USER], type: 'modal' },
+        { id: 'preferences', label: 'Preferences', icon: Settings, roles: [ROLES.USER], type: 'modal' },
 
-        { id: 'fleet', label: 'Fleet Management', icon: Plane, roles: [ROLES.AIRLINE_OWNER], type: 'model' },
-        { id: 'scheduling', label: 'Flight Scheduling', icon: Calendar, roles: [ROLES.AIRLINE_OWNER], type: 'model' },
-        { id: 'revenue', label: 'Revenue / Finance', icon: CreditCard, roles: [ROLES.AIRLINE_OWNER], type: 'model' },
-        { id: 'staff', label: 'Staff / Crew', icon: Users, roles: [ROLES.AIRLINE_OWNER], type: 'model' },
+        { id: 'fleet', label: 'Fleet Management', icon: Plane, roles: [ROLES.AIRLINE_OWNER], type: 'modal' },
+        { id: 'scheduling', label: 'Flight Scheduling', icon: Calendar, roles: [ROLES.AIRLINE_OWNER], type: 'modal' },
+        { id: 'revenue', label: 'Revenue / Finance', icon: CreditCard, roles: [ROLES.AIRLINE_OWNER], type: 'modal' },
+        { id: 'staff', label: 'Staff / Crew', icon: Users, roles: [ROLES.AIRLINE_OWNER], type: 'modal' },
 
-        { id: 'bookings', label: 'Booking Management', icon: FileText, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
-        { id: 'users', label: 'User Management', icon: Users, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
-        { id: 'createUser', label: 'Create User', icon: UserPlus, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
-        { id: 'settings', label: 'System Settings', icon: Settings, roles: [ROLES.SYSTEM_ADMIN], type: 'model' },
+        { id: 'bookings', label: 'Booking Management', icon: FileText, roles: [ROLES.SYSTEM_ADMIN], type: 'modal' },
+        { id: 'users', label: 'User Management', icon: Users, roles: [ROLES.SYSTEM_ADMIN], type: 'modal' },
+        { id: 'createUser', label: 'Create User', icon: UserPlus, roles: [ROLES.SYSTEM_ADMIN], type: 'modal' },
+        { id: 'settings', label: 'System Settings', icon: Settings, roles: [ROLES.SYSTEM_ADMIN], type: 'modal' },
 
-        { id: 'reports', label: 'Reports / Analytics', icon: BarChart, roles: [ROLES.AIRLINE_OWNER, ROLES.SYSTEM_ADMIN], type: 'model' },
+        { id: 'reports', label: 'Reports / Analytics', icon: BarChart, roles: [ROLES.AIRLINE_OWNER, ROLES.SYSTEM_ADMIN], type: 'modal' },
     ];
 
-    const handleModelClick = (modelId) => {
-        setOpenModel(modelId);
+    const handleModalClick = (modalId) => {
+        setOpenModal(modalId);
     };
 
     const filteredItems = menuItems.filter(item => item.roles.includes(role));
@@ -87,8 +87,8 @@ export default function Sidebar({ currentRole, className = '' }) {
                         <button
                             key={item.id}
                             onClick={() => { 
-                                if (item.type === 'model') {
-                                    handleModelClick(item.id);
+                                if (item.type === 'modal') {
+                                    handleModalClick(item.id);
                                 } else if (item.id === 'overview') {
                                     navigate('/user');
                                 }
@@ -119,54 +119,54 @@ export default function Sidebar({ currentRole, className = '' }) {
                 </div>
             </aside>
 
-            {/* Models */}
-            <Model isOpen={openModel === 'profile'} onClose={() => setOpenModel(null)} title="My SkyStream Profile">
-                <ProfileModel onClose={() => setOpenModel(null)} />
-            </Model>
+            {/* Modals */}
+            <Modal isOpen={openModal === 'profile'} onClose={() => setOpenModal(null)} title="My SkyStream Profile">
+                <ProfileModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'security'} onClose={() => setOpenModel(null)} title="Security Settings">
-                <SecurityModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'security'} onClose={() => setOpenModal(null)} title="Security Settings">
+                <SecurityModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'preferences'} onClose={() => setOpenModel(null)} title="User Preferences">
-                <PreferencesModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'preferences'} onClose={() => setOpenModal(null)} title="User Preferences">
+                <PreferencesModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'fleet'} onClose={() => setOpenModel(null)} title="Fleet Management">
-                <FleetModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'fleet'} onClose={() => setOpenModal(null)} title="Fleet Management">
+                <FleetModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'scheduling'} onClose={() => setOpenModel(null)} title="Flight Scheduling">
-                <OverviewUpdateModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'scheduling'} onClose={() => setOpenModal(null)} title="Flight Scheduling">
+                <OverviewUpdateModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'revenue'} onClose={() => setOpenModel(null)} title="Revenue / Finance">
-                <OverviewUpdateModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'revenue'} onClose={() => setOpenModal(null)} title="Revenue / Finance">
+                <OverviewUpdateModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'staff'} onClose={() => setOpenModel(null)} title="Staff / Crew Management">
-                <StaffModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'staff'} onClose={() => setOpenModal(null)} title="Staff / Crew Management">
+                <StaffModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'bookings'} onClose={() => setOpenModel(null)} title="Booking Management">
-                <OverviewUpdateModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'bookings'} onClose={() => setOpenModal(null)} title="Booking Management">
+                <OverviewUpdateModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'users'} onClose={() => setOpenModel(null)} title="Access Management" fullScreen>
-                <UserManagementModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'users'} onClose={() => setOpenModal(null)} title="Access Management" fullScreen>
+                <UserManagementModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'createUser'} onClose={() => setOpenModel(null)} title="Create New User">
-                <CreateUserModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'createUser'} onClose={() => setOpenModal(null)} title="Create New User">
+                <CreateUserModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'settings'} onClose={() => setOpenModel(null)} title="System Settings">
-                <OverviewUpdateModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'settings'} onClose={() => setOpenModal(null)} title="System Settings">
+                <OverviewUpdateModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
-            <Model isOpen={openModel === 'reports'} onClose={() => setOpenModel(null)} title="Reports / Analytics">
-                <ReportsModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'reports'} onClose={() => setOpenModal(null)} title="Reports / Analytics">
+                <ReportsModal onClose={() => setOpenModal(null)} />
+            </Modal>
         </>
     );
 }

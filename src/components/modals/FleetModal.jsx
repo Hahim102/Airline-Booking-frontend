@@ -1,7 +1,7 @@
 import { FLEET_DATA } from '../../constants';
 import { Plane, Info, AlertCircle, Plus } from 'lucide-react';
 
-export default function FleetModel({ onClose }) {
+export default function FleetModal({ onClose }) {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center mb-2">
@@ -20,7 +20,7 @@ export default function FleetModel({ onClose }) {
                             </div>
                             <div>
                                 <h4 className="font-bold text-on-surface truncate max-w-[120px]">{aircraft.tailNumber}</h4>
-                                <p className="text-xs text-outline font-medium">{aircraft.model}</p>
+                                <p className="text-xs text-outline font-medium">{aircraft.modal}</p>
                             </div>
                         </div>
 

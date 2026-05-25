@@ -29,7 +29,7 @@ export default function TopNav({ onAvatarClick }) {
     const info = getInfo();
 
     return (
-        <header className="flex justify-between items-center h-16 px-8 bg-white/80 backdrop-blur-md border-b border-outline-variant sticky top-0 z-40">
+        <header className="flex justify-between items-center h-16 px-8 bg-white/80 backdrop-blur-md border-b border-outline-variant sticky top-0 z-0">
             <div className="flex items-center gap-4">
                 <Link to="/booking" className="font-bold text-primary tracking-tight hover:opacity-90 transition-opacity">
                     Airline Booking
@@ -66,7 +66,7 @@ export default function TopNav({ onAvatarClick }) {
                         aria-label="Toggle sidebar"
                     >
                         <img
-                            src={info.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`}
+                            src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`}
                             alt="Avatar"
                             className="h-full w-full object-cover"
                         />

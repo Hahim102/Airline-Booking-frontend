@@ -84,8 +84,6 @@ export const userService = {
   },
 
 
-
-
   deleteUser: async (userId) => {
     try {
       const response = await apiClient.delete(`${USER_API}/${userId}/delete`);
@@ -108,6 +106,48 @@ export const userService = {
       throw error;
     }
   },
+  
+  updateProfile: async (userData) => {
+    try {
+      const response = await apiClient.put(
+        `${USER_API}/me/update-profile`,
+        userData
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error(
+        "Update profile failed:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+
+  uploadAvatar: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await apiClient.post(
+        `${USER_API}/me/avatar`, 
+        formData,
+        {
+          headers: {
+            'Content-Type': undefined
+          }
+        }
+      );
+
+      return response.data.data;
+    } catch (error) {
+      console.error(
+        "Error uploading avatar:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+
 
   searchAndFilterUsers: async (filters = {}, pagination = {}) => {
     try {
@@ -147,7 +187,7 @@ export const mapBackendUserToFrontendModel = (
     role: backendUser.role,
     active: backendUser.isActive !== undefined ? backendUser.isActive : true,
     lastLoginAt: backendUser.lastLoginAt,
-    avatar: `${defaultAvatar}${backendUser.email}`,
+    avatar: backendUser.avatarUrl,
     passport: '',
     password: backendUser.password,
   };

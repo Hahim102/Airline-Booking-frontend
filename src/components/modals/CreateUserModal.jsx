@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useUsers } from '../../hooks/useUsers';
 import { AuthValidation } from '../../validation';
 
-export default function CreateUserModel({ onClose }) {
+export default function CreateUserModal({ onClose }) {
     const { createUser, loading, error: hookError } = useUsers();
     const [successData, setSuccessData] = useState(null);
     const [formData, setFormData] = useState({

@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, User, Save, IdCard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthValidation } from '../../validation';
-import { authService } from '../../api/authService';
+import { userService } from '../../api/userService';
 
-export default function ProfileModel({ onClose }) {
+export default function ProfileModal({ onClose }) {
     const { user, setUser } = useAuth();
     const [errors, setErrors] = useState({});
     const [formError, setFormError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState("");
+    const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
     const [formData, setFormData] = useState({
         fullName: user?.fullName,
         email: user?.email || "user@example.com",
@@ -81,11 +83,23 @@ export default function ProfileModel({ onClose }) {
 
         setIsLoading(true);
         try {
-            const updatedUserData = await authService.updateUserProfile(user?.id, formData);
+            let avatarUrl = null;
+            if (selectedAvatarFile) {
+                const avatarResult = await userService.uploadAvatar(selectedAvatarFile);
+                avatarUrl = avatarResult.avatarUrl;
+                console.log("Avatar uploaded successfully:", avatarResult);
+            }
 
+    
+            const updatedUserData = await userService.updateProfile(formData);
             console.log("Profile updated successfully:", updatedUserData);
 
-            setUser(updatedUserData);
+            
+            const finalUserData = avatarUrl ? { ...updatedUserData, avatarUrl } : updatedUserData;
+            
+            setUser(finalUserData);
+            setSelectedAvatarFile(null);
+            setAvatarPreview("");
             onClose();
         }
         catch (error) {
@@ -100,6 +114,31 @@ export default function ProfileModel({ onClose }) {
         }
     };
 
+    const handleUploadAvatar = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            setFormError('Only JPEG, PNG, and WebP images are allowed');
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            setFormError('Image size must be less than 5MB');
+            return;
+        }
+
+        setSelectedAvatarFile(file);
+        setFormError('');
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setAvatarPreview(event.target.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {formError && (
@@ -108,16 +147,22 @@ export default function ProfileModel({ onClose }) {
                 </div>
             )}
             <div className="flex flex-col items-center mb-8">
-                <div className="h-24 w-24 rounded-3xl bg-primary/10 overflow-hidden border-4 border-white custom-shadow relative group">
+                <label className="h-24 w-24 rounded-3xl bg-primary/10 overflow-hidden border-4 border-white custom-shadow relative group">
                     <img
-                        src={user?.avatar}
+                        src={avatarPreview || user?.avatarUrl || "/default-avatar.png"}
                         alt="Avatar"
                         className="h-full w-full object-cover"
                     />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                         <span className="text-white text-[10px] font-bold uppercase">Change</span>
                     </div>
-                </div>
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={handleUploadAvatar}
+                    />
+                </label>
                 <h4 className="mt-4 font-bold text-on-surface text-lg">{formData.fullName}</h4>
                 <p className="text-xs text-outline font-bold uppercase tracking-widest">Premium Member</p>
             </div>

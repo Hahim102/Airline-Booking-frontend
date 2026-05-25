@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../api/authService';
 import { AuthValidation } from '../../validation';
 
-export default function SecurityModel({ onClose }) {
+export default function SecurityModal({ onClose }) {
     const { user } = useAuth();
     const [errors, setErrors] = useState({});
     const [formError, setFormError] = useState('');

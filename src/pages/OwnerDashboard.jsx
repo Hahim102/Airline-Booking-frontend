@@ -70,7 +70,7 @@ export default function OwnerDashboard() {
                             <thead className="bg-surface-container-low/50 text-outline text-[10px] font-bold uppercase tracking-widest">
                                 <tr>
                                     <th className="px-6 py-4">Tail Number</th>
-                                    <th className="px-6 py-4">Model</th>
+                                    <th className="px-6 py-4">Modal</th>
                                     <th className="px-6 py-4">Capacity</th>
                                     <th className="px-6 py-4 text-center">Status</th>
                                     <th className="px-6 py-4 text-right">Actions</th>
@@ -80,7 +80,7 @@ export default function OwnerDashboard() {
                                 {FLEET_DATA.map((aircraft, idx) => (
                                     <tr key={idx} className="hover:bg-surface-container-low/30 transition-colors">
                                         <td className="px-6 py-4 font-bold text-on-surface">{aircraft.tailNumber}</td>
-                                        <td className="px-6 py-4 text-sm text-outline-variant font-medium">{aircraft.model}</td>
+                                        <td className="px-6 py-4 text-sm text-outline-variant font-medium">{aircraft.modal}</td>
                                         <td className="px-6 py-4 text-sm text-outline-variant font-medium">{aircraft.capacity}</td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${aircraft.status === 'Active'
@@ -183,7 +183,7 @@ export default function OwnerDashboard() {
                         {CREW_DATA.map((member, idx) => (
                             <div key={idx} className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-outline-variant" />
+                                    <img src={member.avatarUrl} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-outline-variant" />
                                     <div>
                                         <p className="text-sm font-bold text-on-surface">{member.name}</p>
                                         <p className={`text-[10px] font-bold ${member.status === 'AVAILABLE' ? 'text-green-600' : 'text-primary'}`}>

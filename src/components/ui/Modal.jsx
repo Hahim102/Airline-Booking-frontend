@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 
-export default function Model({ isOpen, onClose, title, children, fullScreen = false }) {
+export default function Modal({ isOpen, onClose, title, children, fullScreen = false }) {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -23,7 +23,7 @@ export default function Model({ isOpen, onClose, title, children, fullScreen = f
                         className={`relative bg-white rounded-3xl overflow-hidden custom-shadow shadow-2xl flex flex-col ${
                             fullScreen
                                 ? 'w-[95vw] h-[92vh] max-w-none'
-                                : 'w-full max-w-2xl'
+                                : 'w-[90vw] max-w-8xl'
                         }`}
                     >
                         {/* Header */}

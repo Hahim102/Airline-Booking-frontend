@@ -3,10 +3,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import {
     Search, Trash2, Mail, Shield, UserX, CheckCircle2,
     ChevronUp, ChevronDown, Filter, Phone, Edit2, Check,
-    X as CloseIcon, User as UserIcon, ChevronLeft, ChevronRight, Loader
+    X as CloseIcon, User as UserIcon, ChevronLeft, ChevronRight, Loader, Download, Eye
 } from 'lucide-react';
 import { useUsers } from '../../hooks/useUsers';
 import { validateFullName, validatePhone } from '../../validation/userValidation';
+import ExportReportModal from './ExportReportModal';
+import Modal from '../ui/Modal';
 
 const ROLES = ['ROLE_USER', 'ROLE_SYSTEM_ADMIN', 'ROLE_AIRLINE_OWNER'];
 const ROLE_LABELS = { 'ROLE_USER': 'ROLE_USER', 'ROLE_SYSTEM_ADMIN': 'ADMIN', 'ROLE_AIRLINE_OWNER': 'OWNER' };
@@ -16,10 +18,10 @@ const ROLE_STYLES = {
     'ROLE_USER': 'bg-slate-50 text-slate-700 border border-slate-200',
 };
 
-export default function UserManagementModel({ onClose }) {
+export default function UserManagementModal({ onClose }) {
     const {
         users, loading, error, searchAndFilterUsers,
-        updateUserStatus, deleteUserById, updateUserProfile
+        updateUserStatus, deleteUserById, updateUserProfile, fetchUserProfile
     } = useUsers();
 
     const [allUsers, setAllUsers] = useState([]);
@@ -34,6 +36,10 @@ export default function UserManagementModel({ onClose }) {
     const [actionLoading, setActionLoading] = useState(null);
     const [editLoading, setEditLoading] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [viewingUser, setViewingUser] = useState(null);
+    const [viewingUserProfile, setViewingUserProfile] = useState(null);
+    const [profileLoading, setProfileLoading] = useState(false);
 
     const loadUsers = useCallback(async () => {
         try {
@@ -86,6 +92,18 @@ export default function UserManagementModel({ onClose }) {
             direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
         }));
         setCurrentPage(0);
+    };
+
+    const handleViewProfile = async (userEmail) => {
+        setProfileLoading(true);
+        try {
+            const profile = await fetchUserProfile(userEmail);
+            setViewingUserProfile(profile);
+        } catch (err) {
+            console.error('Failed to fetch user profile:', err);
+        } finally {
+            setProfileLoading(false);
+        }
     };
 
     const handleDelete = async (userId) => {
@@ -241,6 +259,15 @@ export default function UserManagementModel({ onClose }) {
                             {totalElements} Active Records
                         </span>
                     </div>
+                    <button
+                        onClick={() => setShowExportModal(true)}
+                        className="px-4 py-1.5 bg-primary/5 hover:bg-primary/10 rounded-full border border-primary/10 transition-colors flex items-center gap-2"
+                    >
+                        <Download size={14} className="text-primary" />
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.1em]">
+                            Export
+                        </span>
+                    </button>
                     {hasActiveFilters && (
                         <button onClick={clearFilters}
                             className="text-[10px] font-black text-outline hover:text-primary uppercase tracking-widest transition-colors">
@@ -334,6 +361,16 @@ export default function UserManagementModel({ onClose }) {
                                                     <Loader size={18} className="animate-spin text-primary" />
                                                 ) : (
                                                     <>
+                                                        <button
+                                                            onClick={() => {
+                                                                setViewingUser(user);
+                                                                handleViewProfile(user.email);
+                                                            }}
+                                                            className="p-2 rounded-xl transition-all text-outline hover:bg-blue-50 hover:text-blue-600"
+                                                            title="View profile"
+                                                        >
+                                                            <Eye size={18} />
+                                                        </button>
                                                         <button
                                                             disabled={isAdminUser}
                                                             onClick={() => !isAdminUser && setEditingUser({ ...user })}
@@ -530,6 +567,157 @@ export default function UserManagementModel({ onClose }) {
                     {error}
                 </div>
             )}
+
+            {/* Export Modal */}
+            <Modal 
+                isOpen={showExportModal} 
+                onClose={() => setShowExportModal(false)} 
+                title="Export Users"
+            >
+                <ExportReportModal 
+                    exportType="users"
+                    onClose={() => setShowExportModal(false)} 
+                />
+            </Modal>
+
+            {/* View User Profile Modal */}
+            <AnimatePresence>
+                {viewingUser && viewingUserProfile && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-10">
+                        <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+                            className="w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-outline-variant overflow-hidden">
+                            {/* Header */}
+                            <div className="p-8 border-b border-outline-variant bg-surface-container-low flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <img src={viewingUserProfile.avatar} alt={viewingUserProfile.name} className="w-16 h-16 rounded-2xl object-cover border-2 border-primary/20" />
+                                    <div>
+                                        <h3 className="text-2xl font-black text-on-surface uppercase tracking-tight">{viewingUserProfile.name}</h3>
+                                        <p className="text-xs text-outline font-bold uppercase tracking-widest mt-1">User ID: #{viewingUserProfile.id}</p>
+                                    </div>
+                                </div>
+                                <button type="button" onClick={() => {
+                                    setViewingUser(null);
+                                    setViewingUserProfile(null);
+                                }} className="p-2 hover:bg-white rounded-full transition-colors">
+                                    <CloseIcon size={24} className="text-outline" />
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-8 space-y-6 max-h-[calc(100vh-300px)] overflow-y-auto">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Email */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Email Address</label>
+                                        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                            <p className="text-sm font-bold text-on-surface">{viewingUserProfile.email}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Phone Number</label>
+                                        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                            <p className="text-sm font-bold text-on-surface">{viewingUserProfile.phone || 'N/A'}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Role */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Role</label>
+                                        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase inline-block ${ROLE_STYLES[viewingUserProfile.role] || ROLE_STYLES['ROLE_USER']}`}>
+                                                {ROLE_LABELS[viewingUserProfile.role] || viewingUserProfile.role}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Status */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Status</label>
+                                        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                            <span className={`flex items-center gap-2 text-sm font-bold ${viewingUserProfile.active ? 'text-green-600' : 'text-outline/50'}`}>
+                                                <div className={`w-2 h-2 rounded-full ${viewingUserProfile.active ? 'bg-green-500' : 'bg-outline-variant'}`} />
+                                                {viewingUserProfile.active ? 'Active' : 'Suspended'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Created Date */}
+                                    {(viewingUserProfile.createdAt || viewingUserProfile.created_at) && (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Created Date</label>
+                                            <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                                <p className="text-sm font-bold text-on-surface">
+                                                    {new Date(viewingUserProfile.createdAt || viewingUserProfile.created_at).toLocaleDateString()} • {new Date(viewingUserProfile.createdAt || viewingUserProfile.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Updated Date */}
+                                    {(viewingUserProfile.updatedAt || viewingUserProfile.updated_at) && (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Updated Date</label>
+                                            <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                                <p className="text-sm font-bold text-on-surface">
+                                                    {new Date(viewingUserProfile.updatedAt || viewingUserProfile.updated_at).toLocaleDateString()} • {new Date(viewingUserProfile.updatedAt || viewingUserProfile.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Last Login */}
+                                    {viewingUserProfile.lastLoginAt && (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Last Login</label>
+                                            <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                                <p className="text-sm font-bold text-on-surface">
+                                                    {new Date(viewingUserProfile.lastLoginAt).toLocaleDateString()} • {new Date(viewingUserProfile.lastLoginAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Full Name */}
+                                {viewingUserProfile.fullName && viewingUserProfile.fullName !== viewingUserProfile.name && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Full Name</label>
+                                        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                            <p className="text-sm font-bold text-on-surface">{viewingUserProfile.fullName}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Deleted Status */}
+                                {viewingUserProfile.isDeleted !== undefined && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] px-1">Status</label>
+                                        <div className="p-4 bg-surface-container-low border border-outline-variant rounded-2xl">
+                                            <p className="text-sm font-bold text-on-surface">{viewingUserProfile.isDeleted ? 'Deleted' : 'Active'}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-6 border-t border-outline-variant bg-surface-container-low flex justify-center">
+                                <button
+                                    onClick={() => {
+                                        setViewingUser(null);
+                                        setViewingUserProfile(null);
+                                    }}
+                                    className="px-10 py-3 bg-primary text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

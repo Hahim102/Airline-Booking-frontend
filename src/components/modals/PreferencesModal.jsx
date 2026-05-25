@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Moon, Sun, Monitor, Bell, Languages, Plane } from 'lucide-react';
 
-export default function PreferencesModel({ onClose }) {
+export default function PreferencesModal({ onClose }) {
     const [theme, setTheme] = useState('light');
     const [lang, setLang] = useState('English');
 

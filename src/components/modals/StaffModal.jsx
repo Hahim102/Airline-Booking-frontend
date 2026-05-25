@@ -1,7 +1,7 @@
 import { CREW_DATA } from '../../constants';
 import { UserPlus, Search, ShieldCheck } from 'lucide-react';
 
-export default function StaffModel({ onClose }) {
+export default function StaffModal({ onClose }) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">

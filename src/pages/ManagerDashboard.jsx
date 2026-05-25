@@ -1,21 +1,23 @@
 import { motion } from 'motion/react';
-import { Plane, Clock, Ticket, User, TrendingUp, TrendingDown, ArrowRight, MoreHorizontal, Download, Plus, Search, UserPlus, Map, Edit, Shield } from 'lucide-react';
-import { BarChart, Bar, ResponsiveContainer, XAxis, Cell } from 'recharts';
-import { MANAGER_METRICS, FLIGHT_MANAGEMENT_DATA, RECENT_BOOKINGS, USER_MANAGEMENT_DATA, CHART_DATA } from '../constants';
+import { UserCheck, UserMinus, UserX, User, TrendingUp, TrendingDown, ArrowRight, MoreHorizontal, Download, Plus, Search, UserPlus, Map, Edit, Shield, Loader } from 'lucide-react';
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import { FLIGHT_MANAGEMENT_DATA, RECENT_BOOKINGS, USER_MANAGEMENT_DATA } from '../constants';
 import { useAuth } from '../hooks/useAuth';
 import { useUsers } from '../hooks/useUsers';
+import { analyticsService } from '../api/analyticsService';
 import { ROLES } from '../utils/roles';
 import { useState, useEffect } from 'react';
-import ProfileModel from '../components/models/ProfileModel';
-import SecurityModel from '../components/models/SecurityModel';
-import CreateUserModel from '../components/models/CreateUserModel';
-import Model from '../components/ui/Model';
-import UserManagementModel from '../components/models/UserManagementModel';
+import ProfileModal from '../components/modals/ProfileModal';
+import SecurityModal from '../components/modals/SecurityModal';
+import CreateUserModal from '../components/modals/CreateUserModal';
+import ExportReportModal from '../components/modals/ExportReportModal';
+import Modal from '../components/ui/Modal';
+import UserManagementModal from '../components/modals/UserManagementModal';
 
 const ICON_MAP = {
-    Plane: Plane,
-    Clock: Clock,
-    Ticket: Ticket,
+    UserCheck: UserCheck,
+    UserMinus: UserMinus,
+    UserX: UserX,
     User: User
 };
 
@@ -24,11 +26,49 @@ export default function ManagerDashboard() {
     const { users, loading, error, fetchUsers, updateUserStatus } = useUsers();
     const [selectedAdminProfile, setSelectedAdminProfile] = useState(null);
     const [togglingUserId, setTogglingUserId] = useState(null);
-    const [openModel, setOpenModel] = useState(null);
+    const [openModal, setOpenModal] = useState(null);
+    const [exportType, setExportType] = useState('DAY');
+    const [selectedChartType, setSelectedChartType] = useState(null);
+    const [summary, setSummary] = useState(null);
+    const [registrationsByType, setRegistrationsByType] = useState({
+        DAY: [],
+        WEEK: [],
+        MONTH: []
+    });
+    const [analyticsLoading, setAnalyticsLoading] = useState(true);
+    const [analyticsError, setAnalyticsError] = useState(null);
 
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            setAnalyticsLoading(true);
+            setAnalyticsError(null);
+            try {
+                const [summaryData, dayData, weekData, monthData] = await Promise.all([
+                    analyticsService.getSummary(),
+                    analyticsService.getRegistrations('DAY'),
+                    analyticsService.getRegistrations('WEEK'),
+                    analyticsService.getRegistrations('MONTH')
+                ]);
+                setSummary(summaryData);
+                setRegistrationsByType({
+                    DAY: dayData || [],
+                    WEEK: weekData || [],
+                    MONTH: monthData || []
+                });
+            } catch (err) {
+                console.error('Failed to fetch analytics:', err);
+                setAnalyticsError('Failed to load analytics data');
+            } finally {
+                setAnalyticsLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, []);
 
 
     return (
@@ -42,7 +82,7 @@ export default function ManagerDashboard() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <img
-                            src={user?.avatar}
+                            src={user?.avatarUrl}
                             alt={user?.name}
                             className="w-16 h-16 rounded-full object-cover border-4 border-primary/20"
                         />
@@ -54,13 +94,13 @@ export default function ManagerDashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => setOpenModel('profile')}
+                            onClick={() => setOpenModal('profile')}
                             className="px-4 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-all flex items-center gap-2 uppercase tracking-wide"
                         >
                             <Edit size={14} /> Edit Profile
                         </button>
                         <button
-                            onClick={() => setOpenModel('security')}
+                            onClick={() => setOpenModal('security')}
                             className="px-4 py-2 text-xs font-bold text-primary bg-white border border-primary rounded-lg hover:bg-primary/5 transition-all flex items-center gap-2 uppercase tracking-wide"
                         >
                             <Shield size={14} /> Change Password
@@ -72,43 +112,235 @@ export default function ManagerDashboard() {
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h2 className="text-4xl font-bold text-primary tracking-tight">Operations Overview</h2>
-                    <p className="text-outline font-medium">Real-time status of SkyStream's global fleet and bookings.</p>
                 </div>
-                <div className="flex gap-3">
-                    <button className="px-4 py-2 text-xs font-bold text-outline bg-white border border-outline-variant rounded-lg hover:bg-surface transition-colors custom-shadow flex items-center gap-2 uppercase tracking-wide">
+                <div className="flex gap-3 items-center">
+                    <select
+                        value={exportType}
+                        onChange={(e) => setExportType(e.target.value)}
+                        className="text-[10px] font-bold text-on-surface bg-white border border-outline-variant rounded-lg px-3 py-2 uppercase tracking-widest hover:bg-surface-container-low transition-colors"
+                    >
+                        <option value="DAY">Daily Report</option>
+                        <option value="WEEK">Weekly Report</option>
+                        <option value="MONTH">Monthly Report</option>
+                    </select>
+                    <button 
+                        onClick={() => setOpenModal('export')}
+                        className="px-4 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-all custom-shadow flex items-center gap-2 uppercase tracking-wide"
+                    >
                         <Download size={16} /> Export Report
-                    </button>
-                    <button className="px-4 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-all custom-shadow flex items-center gap-2 uppercase tracking-wide">
-                        <Plus size={16} /> Add New Flight
                     </button>
                 </div>
             </div>
 
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {MANAGER_METRICS.map((metric, idx) => {
-                    const Icon = ICON_MAP[metric.icon];
-                    return (
-                        <div key={idx} className="bg-white p-6 rounded-2xl border border-outline-variant custom-shadow">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className={`p-2 rounded-lg ${idx === 0 ? 'bg-blue-50 text-blue-600' :
-                                    idx === 1 ? 'bg-orange-50 text-orange-600' :
-                                        idx === 2 ? 'bg-purple-50 text-purple-600' :
-                                            'bg-cyan-50 text-cyan-600'
-                                    }`}>
-                                    <Icon size={20} />
-                                </div>
-                                <span className={`text-[10px] font-bold flex items-center gap-1 ${metric.changeType === 'positive' ? 'text-emerald-500' :
-                                    metric.changeType === 'negative' ? 'text-rose-500' : 'text-outline'
-                                    }`}>
-                                    {metric.trend === 'up' ? <TrendingUp size={12} /> : metric.trend === 'down' ? <TrendingDown size={12} /> : null}
-                                    {metric.change}
-                                </span>
-                            </div>
-                            <p className="text-outline text-[10px] font-bold uppercase tracking-widest">{metric.label}</p>
-                            <h3 className="text-3xl font-bold text-primary mt-1">{metric.value}</h3>
+            <div className="bg-white rounded-2xl border border-outline-variant custom-shadow p-6 flex flex-col">
+                <div className="mb-6">
+                    <h3 className="text-lg font-bold text-primary mb-4">User Registrations</h3>
+                    <div className="flex gap-2 flex-wrap">
+                        <button
+                            onClick={() => setSelectedChartType(selectedChartType === 'DAY' ? null : 'DAY')}
+                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all uppercase tracking-widest ${
+                                selectedChartType === 'DAY'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-surface-container-low text-on-surface border border-outline-variant hover:bg-surface-container-highest'
+                            }`}
+                        >
+                            Daily
+                        </button>
+                        <button
+                            onClick={() => setSelectedChartType(selectedChartType === 'WEEK' ? null : 'WEEK')}
+                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all uppercase tracking-widest ${
+                                selectedChartType === 'WEEK'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-surface-container-low text-on-surface border border-outline-variant hover:bg-surface-container-highest'
+                            }`}
+                        >
+                            Weekly
+                        </button>
+                        <button
+                            onClick={() => setSelectedChartType(selectedChartType === 'MONTH' ? null : 'MONTH')}
+                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all uppercase tracking-widest ${
+                                selectedChartType === 'MONTH'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-surface-container-low text-on-surface border border-outline-variant hover:bg-surface-container-highest'
+                            }`}
+                        >
+                            Monthly
+                        </button>
+                    </div>
+                </div>
+
+                {analyticsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                        <div className="flex flex-col items-center gap-4">
+                            <Loader size={32} className="text-primary animate-spin" />
+                            <p className="text-sm text-outline">Loading analytics...</p>
                         </div>
-                    );
-                })}
+                    </div>
+                ) : selectedChartType === 'DAY' || selectedChartType === 'WEEK' || selectedChartType === 'MONTH' ? (
+                    <div className="flex flex-col items-center justify-center">
+                        <div style={{ width: '100%', height: '400px' }}>
+                            {(() => {
+                                const data = registrationsByType[selectedChartType];
+                                const total = data.reduce((sum, d) => sum + d.total, 0);
+                                const typeLabel = selectedChartType === 'DAY' ? 'Daily' : selectedChartType === 'WEEK' ? 'Weekly' : 'Monthly';
+                                const COLORS = ['#003874', '#4f5a9a', '#1e40af', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe', '#bfdbfe'];
+                                
+                                const CustomTooltip = ({ active, payload }) => {
+                                    if (active && payload && payload[0]) {
+                                        return (
+                                            <div className="bg-white p-3 rounded-lg border border-outline-variant shadow-lg">
+                                                <p className="text-sm font-bold text-primary">{payload[0].payload.label}</p>
+                                                <p className="text-xs text-outline">{payload[0].value} registrations</p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                };
+
+                                return (
+                                    <>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={data}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={80}
+                                                    outerRadius={120}
+                                                    paddingAngle={2}
+                                                    dataKey="total"
+                                                    label={({ value, percent }) => `${(percent * 100).toFixed(0)}%`}
+                                                >
+                                                    {data.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip content={<CustomTooltip />} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                        <div className="mt-8 w-full max-w-xs space-y-3 text-sm border-t border-outline-variant pt-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-outline font-medium">{typeLabel} Total Registrations</span>
+                                                <span className="font-bold text-primary text-lg">{total}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-outline font-medium">Avg. per {selectedChartType === 'DAY' ? 'Day' : selectedChartType === 'WEEK' ? 'Week' : 'Month'}</span>
+                                                <span className="font-bold text-primary">{Math.round(total / data.length)}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {['DAY', 'WEEK', 'MONTH'].map((type) => {
+                            const data = registrationsByType[type];
+                            const total = data.reduce((sum, d) => sum + d.total, 0);
+                            const typeLabel = type === 'DAY' ? 'Daily' : type === 'WEEK' ? 'Weekly' : 'Monthly';
+                            const COLORS = ['#003874', '#4f5a9a', '#1e40af', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe', '#bfdbfe'];
+                            
+                            const CustomTooltip = ({ active, payload }) => {
+                                if (active && payload && payload[0]) {
+                                    return (
+                                        <div className="bg-white p-2 rounded-lg border border-outline-variant shadow-lg">
+                                            <p className="text-xs font-bold text-primary">{payload[0].payload.label}</p>
+                                            <p className="text-xs text-outline">{payload[0].value} registrations</p>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            };
+
+                            return (
+                                <div key={type} className="bg-surface-container-low rounded-xl p-4 flex flex-col">
+                                    <h4 className="text-sm font-bold text-primary mb-3 text-center">{typeLabel}</h4>
+                                    {data && data.length > 0 ? (
+                                        <div className="flex-1 flex flex-col items-center">
+                                            <div style={{ width: '100%', height: '200px' }}>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={data}
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius={40}
+                                                            outerRadius={65}
+                                                            paddingAngle={2}
+                                                            dataKey="total"
+                                                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                                                        >
+                                                            {data.map((entry, index) => (
+                                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip content={<CustomTooltip />} />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <div className="mt-4 w-full space-y-2 text-[11px] border-t border-outline-variant/50 pt-3">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-outline">Total</span>
+                                                    <span className="font-bold text-primary">{total}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-outline">Avg.</span>
+                                                    <span className="font-bold text-primary">{Math.round(total / data.length)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-[200px] text-outline text-xs">
+                                            No data
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {analyticsLoading ? (
+                    <div className="col-span-full flex items-center justify-center py-12">
+                        <div className="flex flex-col items-center gap-4">
+                            <Loader size={32} className="text-primary animate-spin" />
+                            <p className="text-sm text-outline">Loading analytics...</p>
+                        </div>
+                    </div>
+                ) : analyticsError ? (
+                    <div className="col-span-full p-4 bg-rose-50 border border-rose-200 rounded-lg text-sm text-rose-700">
+                        {analyticsError}
+                    </div>
+                ) : summary ? (
+                    <>
+                        {[
+                            { label: 'Total Users', value: summary.totalUsers, icon: 'User', color: 'blue' },
+                            { label: 'Active Users', value: summary.activeUsers, icon: 'UserCheck', color: 'emerald' },
+                            { label: 'Inactive Users', value: summary.inactiveUsers, icon: 'UserMinus', color: 'amber' },
+                            { label: 'Deleted Users', value: summary.deletedUsers, icon: 'UserX', color: 'rose' }
+                        ].map((metric, idx) => {
+                            const Icon = ICON_MAP[metric.icon];
+                            const colorBg = idx === 0 ? 'bg-blue-50 text-blue-600' :
+                                idx === 1 ? 'bg-orange-50 text-orange-600' :
+                                    idx === 2 ? 'bg-purple-50 text-purple-600' :
+                                        'bg-cyan-50 text-cyan-600';
+                            return (
+                                <div key={idx} className="bg-white p-6 rounded-2xl border border-outline-variant custom-shadow">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className={`p-2 rounded-lg ${colorBg}`}>
+                                            <Icon size={20} />
+                                        </div>
+                                    </div>
+                                    <p className="text-outline text-[10px] font-bold uppercase tracking-widest">{metric.label}</p>
+                                    <h3 className="text-3xl font-bold text-primary mt-1">{metric.value}</h3>
+                                </div>
+                            );
+                        })}
+                    </>
+                ) : null}
             </section>
 
             <div className="grid grid-cols-12 gap-6">
@@ -169,42 +401,7 @@ export default function ManagerDashboard() {
                     </div>
                 </div>
 
-                {/* Booking Trend Chart */}
-                <div className="col-span-12 lg:col-span-4 bg-white rounded-2xl border border-outline-variant custom-shadow p-6 flex flex-col">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-bold text-primary">Booking Trend</h3>
-                        <span className="text-[10px] font-bold text-outline uppercase tracking-widest">Last 7 Days</span>
-                    </div>
-                    <div className="flex-1 min-h-[200px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={CHART_DATA}>
-                                <Bar dataKey="value" radius={[2, 2, 0, 0]}>
-                                    {CHART_DATA.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={index === 5 ? '#4f5a9a' : '#003874'} className="hover:fill-secondary cursor-pointer transition-colors" />
-                                    ))}
-                                </Bar>
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#737782' }} dy={10} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="mt-12 space-y-4">
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="text-outline font-medium">Peak Day</span>
-                            <span className="font-bold text-primary">Saturday</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="text-outline font-medium">Avg. Daily Bookings</span>
-                            <span className="font-bold text-primary">6,130</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            {/*
-            <div className="grid grid-cols-12 gap-6">
-                 Recent Bookings 
-                <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl border border-outline-variant custom-shadow overflow-hidden">
+                <div className="col-span-12 lg:col-span-4 bg-white rounded-2xl border border-outline-variant custom-shadow overflow-hidden">
                     <div className="p-6 border-b border-outline-variant bg-surface-container-low">
                         <h3 className="text-lg font-bold text-primary">Recent Bookings</h3>
                     </div>
@@ -243,8 +440,6 @@ export default function ManagerDashboard() {
                     </div>
                 </div>
             </div>
-
-            */}
 
             <div className="mt-8 bg-white rounded-2xl border border-outline-variant custom-shadow overflow-hidden">
                 <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
@@ -288,7 +483,7 @@ export default function ManagerDashboard() {
                             {/* Avatar and Name */}
                             <div className="flex flex-col items-center text-center">
                                 <img
-                                    src={selectedAdminProfile.avatar}
+                                    src={selectedAdminProfile.avatarUrl}
                                     alt={selectedAdminProfile.name}
                                     className="w-20 h-20 rounded-full object-cover border-4 border-primary/20 mb-4"
                                 />
@@ -396,19 +591,28 @@ export default function ManagerDashboard() {
             )}
 
             {/* Admin Profile Edit Modal */}
-            <Model isOpen={openModel === 'profile'} onClose={() => setOpenModel(null)} title="Edit Admin Profile">
-                <ProfileModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'profile'} onClose={() => setOpenModal(null)} title="Edit Admin Profile">
+                <ProfileModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
             {/* Admin Security/Password Modal */}
-            <Model isOpen={openModel === 'security'} onClose={() => setOpenModel(null)} title="Change Password">
-                <SecurityModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'security'} onClose={() => setOpenModal(null)} title="Change Password">
+                <SecurityModal onClose={() => setOpenModal(null)} />
+            </Modal>
 
             {/* Create User Modal */}
-            <Model isOpen={openModel === 'createUser'} onClose={() => setOpenModel(null)} title="Create New User">
-                <CreateUserModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'createUser'} onClose={() => setOpenModal(null)} title="Create New User">
+                <CreateUserModal onClose={() => setOpenModal(null)} />
+            </Modal>
+
+            {/* Export Report Modal */}
+            <Modal isOpen={openModal === 'export'} onClose={() => setOpenModal(null)} title="Export Report">
+                <ExportReportModal 
+                    exportType="analytics"
+                    analyticsType={exportType}
+                    onClose={() => setOpenModal(null)} 
+                />
+            </Modal>
         </motion.div>
     );
 }

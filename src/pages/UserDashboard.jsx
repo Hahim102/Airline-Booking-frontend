@@ -3,11 +3,11 @@ import { motion } from 'motion/react';
 import { Contact, Ticket, Armchair, Utensils, PlaneTakeoff, Lock, Smartphone, ChevronRight, RefreshCw, Settings } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import Model from '../components/ui/Model';
-import ProfileModel from '../components/models/ProfileModel';
+import Modal from '../components/ui/Modal';
+import ProfileModal from '../components/modals/ProfileModal';
 
 export default function UserDashboard() {
-    const [openModel, setOpenModel] = useState(null);
+    const [openModal, setOpenModal] = useState(null);
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -78,7 +78,7 @@ export default function UserDashboard() {
                         </div>
                     </div>
                     <div className="px-8 py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-end">
-                        <button onClick={() => setOpenModel('profile')} className="px-6 py-2 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all">
+                        <button onClick={() => setOpenModal('profile')} className="px-6 py-2 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all">
                             Edit Profile
                         </button>
                     </div>
@@ -144,7 +144,7 @@ export default function UserDashboard() {
                     {/* Quick Actions */}
                     <div className="p-6 bg-primary-container rounded-2xl text-on-primary-container flex flex-col gap-4">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-80">Quick Actions</h4>
-                        <button onClick={() => setOpenModel('profile')} className="w-full py-3 px-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-white text-sm transition-all text-left flex items-center gap-3">
+                        <button onClick={() => setOpenModal('profile')} className="w-full py-3 px-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-white text-sm transition-all text-left flex items-center gap-3">
                             <RefreshCw size={18} />
                             Update Profile
                         </button>
@@ -167,9 +167,9 @@ export default function UserDashboard() {
             </div>
 
             {/* Profile Modal */}
-            <Model isOpen={openModel === 'profile'} onClose={() => setOpenModel(null)} title="My SkyStream Profile">
-                <ProfileModel onClose={() => setOpenModel(null)} />
-            </Model>
+            <Modal isOpen={openModal === 'profile'} onClose={() => setOpenModal(null)} title="My SkyStream Profile">
+                <ProfileModal onClose={() => setOpenModal(null)} />
+            </Modal>
         </motion.div>
     );
 }
