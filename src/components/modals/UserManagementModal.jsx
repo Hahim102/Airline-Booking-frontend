@@ -21,7 +21,7 @@ const ROLE_STYLES = {
 export default function UserManagementModal({ onClose }) {
     const {
         users, loading, error, searchAndFilterUsers,
-        updateUserStatus, deleteUserById, updateUserProfile, fetchUserProfile
+        updateUserStatus, deleteUserById, updateUserProfile, fetchUserById
     } = useUsers();
 
     const [allUsers, setAllUsers] = useState([]);
@@ -94,10 +94,10 @@ export default function UserManagementModal({ onClose }) {
         setCurrentPage(0);
     };
 
-    const handleViewProfile = async (userEmail) => {
+    const handleViewProfile = async (userId) => {
         setProfileLoading(true);
         try {
-            const profile = await fetchUserProfile(userEmail);
+            const profile = await fetchUserById(userId);
             setViewingUserProfile(profile);
         } catch (err) {
             console.error('Failed to fetch user profile:', err);
@@ -364,7 +364,7 @@ export default function UserManagementModal({ onClose }) {
                                                         <button
                                                             onClick={() => {
                                                                 setViewingUser(user);
-                                                                handleViewProfile(user.email);
+                                                                handleViewProfile(user.id);
                                                             }}
                                                             className="p-2 rounded-xl transition-all text-outline hover:bg-blue-50 hover:text-blue-600"
                                                             title="View profile"

@@ -4,6 +4,16 @@ const AUTH_API = '/auth';
 const ACCESS_TOKEN_STORAGE_KEY = 'airline.accessToken';
 
 
+const getApiErrorMessage = (error, fallback = 'Something went wrong') => {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallback
+  );
+};
+
+
 export const authService = {
   login: async (email, password, captchaToken) => {
     try {
@@ -17,8 +27,7 @@ export const authService = {
 
       return response.data.data;
     } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Login failed'));
     }
   },
 
@@ -30,7 +39,7 @@ export const authService = {
       return response.data.data;
     } catch (error) {
       console.error('Forgot password error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Forgot password failed'));
     }
   },
 
@@ -44,7 +53,7 @@ export const authService = {
       return response.data.data;
     } catch (error) {
       console.error('Reset password error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Reset password failed'));
     }
   },
 
@@ -56,8 +65,7 @@ export const authService = {
       });
       return response.data.data;
     } catch (error) {
-      console.error('Confirm reset password error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Confirm OTP failed'));
     }
   },
 
@@ -73,8 +81,7 @@ export const authService = {
       });
       return response.data.data;
     } catch (error) {
-      console.error('Register error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Registration failed'));
     }
   },
   
@@ -98,7 +105,7 @@ export const authService = {
       return response.data.data;
     } catch (error) {
       console.error('Logout error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Logout failed'));
     }
   },
 
@@ -132,8 +139,7 @@ export const authService = {
       
       return response.data.data;
     } catch (error) {
-      console.error('Get current user error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch user data'));
     }
   },
 
@@ -142,8 +148,7 @@ export const authService = {
       const response = await apiClient.put(`${AUTH_API}/update-profile?userId=${userId}`, profileData);
       return response.data.data;
     } catch (error) {
-      console.error('Update profile error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to update profile'));
     }
   },
 
@@ -155,8 +160,7 @@ export const authService = {
       });
       return response.data.data;
     } catch (error) {
-      console.error('Update password error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to update password'));
     }
   },
 };

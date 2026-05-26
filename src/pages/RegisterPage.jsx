@@ -48,9 +48,6 @@ export const RegisterPage = () => {
     }
   }, [recaptchaReady]);
 
-  useEffect(() => {
-    logout({ server: false });
-  }, [logout]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

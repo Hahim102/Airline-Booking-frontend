@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin, User, Save, IdCard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthValidation } from '../../validation';
 import { userService } from '../../api/userService';
+import { tokenStorage } from '../../api/authService';
 
 export default function ProfileModal({ onClose }) {
     const { user, setUser } = useAuth();
@@ -98,6 +99,7 @@ export default function ProfileModal({ onClose }) {
             const finalUserData = avatarUrl ? { ...updatedUserData, avatarUrl } : updatedUserData;
             
             setUser(finalUserData);
+            tokenStorage.setUser(finalUserData);
             setSelectedAvatarFile(null);
             setAvatarPreview("");
             onClose();

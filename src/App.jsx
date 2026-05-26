@@ -32,10 +32,6 @@ const PublicOnly = ({ children }) => {
 
 
 
-/**
- * App Component
- * Main routing and layout setup
- */
 function App() {
 
   

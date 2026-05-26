@@ -30,29 +30,37 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await authService.login(email, password, captchaToken);
-      const { accessToken, user: userData } = response;
+      const { accessToken } = response;
 
-      if (!accessToken || !userData) {
-        throw new Error("Login response missing accessToken or user");
+      if (!accessToken) {
+        throw new Error("Login response missing accessToken");
       }
 
       setAccessToken(accessToken);
       tokenStorage.setToken(accessToken);
-      tokenStorage.setUser(userData);
-      setUser(userData);
+      
 
       setAuthStore({
         accessToken: accessToken,
         logout,
       });
 
+      const currentUser = await authService.getCurrentUser();
+
+      tokenStorage.setUser(currentUser);
+      setUser(currentUser);
+
       return {
         success: true,
         message: 'Login successful',
-        user: userData,
+        user: currentUser,
       };
     } catch (err) {
-      const errorMsg = err?.message || 'Login failed';
+      const errorMsg = 
+        err?.response?.data?.message ||
+        err?.message ||
+        'Login failed';
+
       setError(errorMsg);
       return { success: false, message: errorMsg };
     } finally {
@@ -73,10 +81,13 @@ export const AuthProvider = ({ children }) => {
         success: true,
         message: response?.message || 'Registration successful',
         title: response?.title,
-        user: response?.user,
+        user: response?.data?.user,
       };
     } catch (err) {
-      const errorMsg = err?.message || 'Registration failed';
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Registration failed';
       setError(errorMsg);
       return { success: false, message: errorMsg };
     } finally {

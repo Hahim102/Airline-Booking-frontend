@@ -47,13 +47,18 @@ export default function ExportReportModal({ onClose, exportType = 'users', analy
       const filename = getFilename();
       downloadFile(blob, filename);
       
-      // Close modal after successful export
       setTimeout(() => {
         onClose();
       }, 500);
     } catch (err) {
       console.error('Export failed:', err);
-      setError(err?.message || 'Export failed. Please try again.');
+
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Unable to export report right now. Please try again later.';
+
+      setError(message);
     } finally {
       setLoading(false);
     }
