@@ -194,7 +194,8 @@ export default function ProfileModal({ onClose }) {
                     </div>
                 </div>
 
-                <div className="space-y-2">
+            
+                {/* <div className="space-y-2">
                     <label className="text-[10px] font-bold text-outline uppercase tracking-widest px-1">Email</label>
                     <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" size={18} />
@@ -218,7 +219,7 @@ export default function ProfileModal({ onClose }) {
                             </p>
                         )}
                     </div>
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                     <label className="text-[10px] font-bold text-outline uppercase tracking-widest px-1">Phone</label>

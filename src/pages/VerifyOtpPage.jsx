@@ -9,6 +9,9 @@ export const VerifyOtpPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || '';
+  const purpose = location.state?.purpose || 'REGISTER';
+  const pageMessage = location.state?.message || "";
+  const autoSendOtp = location.state?.autoSendOtp || false;
 
   const [otp, setOtp] = useState(new Array(OTP_LENGTH).fill(''));
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +22,7 @@ export const VerifyOtpPage = () => {
   const [canResend, setCanResend] = useState(false);
 
   const inputRefs = useRef([]);
+  const autoSentRef = useRef(false);
 
   useEffect(() => {
     if (!email) {
@@ -44,6 +48,25 @@ export const VerifyOtpPage = () => {
       inputRefs.current[0].focus();
     }
   }, []);
+
+  useEffect(() => {
+    if (!email || !autoSendOtp) return;
+    if (autoSentRef.current) return;
+
+    autoSentRef.current = true;
+
+    const sendOtp = async () => {
+      try {
+        await authService.resendVerifyOtp(email);
+        setSuccessMessage("OTP has been sent to your email.");
+        setTimeout(() => setSuccessMessage(""), 4000);
+      } catch (err) {
+        setFormError(err?.message || "Unable to send OTP. Please try again.");
+      }
+    };
+
+    sendOtp();
+  }, [email, autoSendOtp]);
 
   const handleChange = (index, value) => {
     if (value && !/^\d$/.test(value)) return;
@@ -138,10 +161,12 @@ export const VerifyOtpPage = () => {
     setOtp(new Array(OTP_LENGTH).fill(''));
 
     try {
-      setSuccessMessage('If the account exists, a new OTP has been sent to your email.');
+      await authService.resendVerifyOtp(email);
+
+      setSuccessMessage('A new OTP has been sent to your email.');
       setTimeout(() => setSuccessMessage(''), 4000);
-    } catch {
-      setFormError('Unable to resend OTP. Please try again.');
+    } catch (err) {
+      setFormError(err?.message || 'Unable to resend OTP. Please try again.');
     }
 
     inputRefs.current[0]?.focus();
@@ -247,6 +272,13 @@ export const VerifyOtpPage = () => {
                 </>
               )}
             </p>
+
+            {/* Page Message */}
+            {pageMessage && !isVerified && (
+              <div className="mb-4 rounded-md border-l-4 border-blue-500 bg-blue-50 px-3 py-2.5 text-sm text-blue-700">
+                {pageMessage}. Please verify your email to continue.
+              </div>
+            )}
 
             {!isVerified && (
               <>

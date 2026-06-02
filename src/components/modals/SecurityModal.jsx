@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldCheck, Key, Smartphone, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Key, Smartphone, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../api/authService';
 import { AuthValidation } from '../../validation';
@@ -10,6 +10,9 @@ export default function SecurityModal({ onClose }) {
     const [formError, setFormError] = useState('');
     const [loading, setLoading] = useState(false);
     const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const validate = () => {
         const newErrors = {};
@@ -143,21 +146,32 @@ export default function SecurityModal({ onClose }) {
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold text-outline uppercase tracking-widest px-1">Current Password</label>
-                        <input
-                            type="password"
-                            value={passwords.current}
-                            onChange={(e) =>
-                                handleChange("current", e.target.value)
-                            }
-                            className={`w-full px-4 py-3 bg-surface-container-low border rounded-xl
-                            focus:ring-2 focus:ring-primary focus:border-transparent
-                            outline-none transition-all
-                            ${errors.current
-                                    ? "border-red-500"
-                                    : "border-outline-variant"
-                                }`}
-                            placeholder="••••••••"
-                        />
+                        <div className="relative">
+                            <input
+                                type={showCurrentPassword ? "text" : "password"}
+                                value={passwords.current}
+                                onChange={(e) =>
+                                    handleChange("current", e.target.value)
+                                }
+                                className={`w-full px-4 py-3 pr-10 bg-surface-container-low border rounded-xl
+                                focus:ring-2 focus:ring-primary focus:border-transparent
+                                outline-none transition-all
+                                ${errors.current
+                                        ? "border-red-500"
+                                        : "border-outline-variant"
+                                    }`}
+                                placeholder="••••••••"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                disabled={loading}
+                                className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                                title={showCurrentPassword ? "Hide password" : "Show password"}
+                            >
+                                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                         {errors.current && (
                             <p className="text-red-500 text-xs mt-1">
                                 {errors.current}
@@ -167,21 +181,32 @@ export default function SecurityModal({ onClose }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-outline uppercase tracking-widest px-1">New Password</label>
-                            <input
-                                type="password"
-                                value={passwords.new}
-                                onChange={(e) =>
-                                    handleChange("new", e.target.value)
-                                }
-                                className={`w-full px-4 py-3 bg-surface-container-low border rounded-xl
-                                focus:ring-2 focus:ring-primary focus:border-transparent
-                                outline-none transition-all
-                                ${errors.new
-                                        ? "border-red-500"
-                                        : "border-outline-variant"
-                                    }`}
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showNewPassword ? "text" : "password"}
+                                    value={passwords.new}
+                                    onChange={(e) =>
+                                        handleChange("new", e.target.value)
+                                    }
+                                    className={`w-full px-4 py-3 pr-10 bg-surface-container-low border rounded-xl
+                                    focus:ring-2 focus:ring-primary focus:border-transparent
+                                    outline-none transition-all
+                                    ${errors.new
+                                            ? "border-red-500"
+                                            : "border-outline-variant"
+                                        }`}
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    disabled={loading}
+                                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                                    title={showNewPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                             {errors.new && (
                                 <p className="text-red-500 text-xs mt-1">
                                     {errors.new}
@@ -190,21 +215,32 @@ export default function SecurityModal({ onClose }) {
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-outline uppercase tracking-widest px-1">Confirm New Password</label>
-                            <input
-                                type="password"
-                                value={passwords.confirm}
-                                onChange={(e) =>
-                                    handleChange("confirm", e.target.value)
-                                }
-                                className={`w-full px-4 py-3 bg-surface-container-low border rounded-xl
-                                focus:ring-2 focus:ring-primary focus:border-transparent
-                                outline-none transition-all
-                                ${errors.confirm
-                                        ? "border-red-500"
-                                        : "border-outline-variant"
-                                    }`}
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={passwords.confirm}
+                                    onChange={(e) =>
+                                        handleChange("confirm", e.target.value)
+                                    }
+                                    className={`w-full px-4 py-3 pr-10 bg-surface-container-low border rounded-xl
+                                    focus:ring-2 focus:ring-primary focus:border-transparent
+                                    outline-none transition-all
+                                    ${errors.confirm
+                                            ? "border-red-500"
+                                            : "border-outline-variant"
+                                        }`}
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    disabled={loading}
+                                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                                    title={showConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                             {errors.confirm && (
                                 <p className="text-red-500 text-xs mt-1">
                                     {errors.confirm}

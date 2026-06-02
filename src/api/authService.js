@@ -43,6 +43,18 @@ export const authService = {
     }
   },
 
+  resendForgotPasswordOtp: async (email) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/resend-forgot-password-otp`, {
+        email,
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Unable to resend forgot password OTP'));
+    }
+  },
+
   resetPassword: async (email, otp, newPassword) => {
     try {
       const response = await apiClient.post(`${AUTH_API}/reset-password`, {
@@ -79,7 +91,7 @@ export const authService = {
         phone,
         captchaToken,
       });
-      return response.data.data;
+      return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Registration failed'));
     }
@@ -94,8 +106,20 @@ export const authService = {
 
       return response.data.data;
     } catch (error) {
-      console.error("Verify OTP error:", error);
+      throw new Error(getApiErrorMessage(error, 'OTP verification failed'));
       throw error;
+    }
+  },
+
+  resendVerifyOtp: async (email) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/resend-verify-otp`, {
+        email,
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Unable to resend OTP'));
     }
   },
 
@@ -117,18 +141,7 @@ export const authService = {
       });
       return response.data.data;
     } catch (error) {
-      if (
-        error.response?.status === 401 ||
-        error.response?.status === 403 ||
-        error.status === 401 ||
-        error.status === 403
-      ) {
-        return null;
-      }
-
-      console.error("Token refresh error:", error);
-
-      return null;
+      throw new Error(getApiErrorMessage(error, 'Token refresh failed'));
   }
  },
 

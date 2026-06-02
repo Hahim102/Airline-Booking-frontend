@@ -81,7 +81,6 @@ export const AuthProvider = ({ children }) => {
         success: true,
         message: response?.message || 'Registration successful',
         title: response?.title,
-        user: response?.data?.user,
       };
     } catch (err) {
       const errorMsg =
