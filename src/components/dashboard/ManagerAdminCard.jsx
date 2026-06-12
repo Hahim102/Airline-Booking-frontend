@@ -6,7 +6,7 @@ export default function ManagerAdminCard({ user, onEditClick, onSecurityClick })
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <img
-                        src={user?.avatarUrl}
+                        src={user?.avatar}
                         alt={user?.name}
                         className="w-16 h-16 rounded-full object-cover border-4 border-primary/20"
                     />

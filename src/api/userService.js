@@ -5,18 +5,6 @@ const USER_API = '/users';
 
 export const userService = {
 
-  createUser: async (userData) => {
-    try {
-      const response = await apiClient.post(`${USER_API}/create-user`, 
-        userData
-      );
-      return response.data.data;
-    } catch (error) {
-      console.error('Error creating user:', error);
-      throw error;
-    }
-  },
-
   getUserProfile: async (email) => {
     try {
       const response = await apiClient.get(`${USER_API}/profile`, {
@@ -57,7 +45,7 @@ export const userService = {
 
   getAllUsers: async () => {
     try {
-      const response = await apiClient.get(USER_API);
+      const response = await apiClient.get(`${USER_API}/get-all`);
       return response.data.data;
     } catch (error) {
       console.error('Error fetching all users:', error);
@@ -187,7 +175,7 @@ export const mapBackendUserToFrontendModel = (
     role: backendUser.role,
     active: backendUser.isActive !== undefined ? backendUser.isActive : true,
     lastLoginAt: backendUser.lastLoginAt,
-    avatar: backendUser.avatarUrl,
+    avatar: backendUser.avatarUrl || `${defaultAvatar}${backendUser.fullName || backendUser.email}`,
     passport: '',
     password: backendUser.password,
   };

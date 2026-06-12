@@ -170,10 +170,8 @@ export const ResetPasswordPage = () => {
 
         try {
             setIsLoading(true);
-            const otpCode = otp.join('');
             await authService.resetPassword(
                 email,
-                otpCode,
                 newPassword
             );
 

@@ -55,11 +55,10 @@ export const authService = {
     }
   },
 
-  resetPassword: async (email, otp, newPassword) => {
+  resetPassword: async (email, newPassword) => {
     try {
       const response = await apiClient.post(`${AUTH_API}/reset-password`, {
         email,
-        otp,
         newPassword,
       });
       return response.data.data;
@@ -94,6 +93,18 @@ export const authService = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Registration failed'));
+    }
+  },
+
+  createUser: async (userData) => {
+    try {
+      const response = await apiClient.post(`${AUTH_API}/admin/create-user`,
+          userData
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
     }
   },
   
@@ -145,25 +156,6 @@ export const authService = {
   }
  },
 
-
-  getCurrentUser: async () => {
-    try {
-      const response = await apiClient.get('/users/me');
-      
-      return response.data.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch user data'));
-    }
-  },
-
-  updateUserProfile: async (userId, profileData) => {
-    try {
-      const response = await apiClient.put(`${AUTH_API}/update-profile?userId=${userId}`, profileData);
-      return response.data.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update profile'));
-    }
-  },
 
   updatePassword: async (userId, currentPassword, newPassword) => {
     try {

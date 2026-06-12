@@ -1,6 +1,7 @@
 import { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import { authService, tokenStorage, authHelpers } from '../api/authService';
 import { setAuthStore, clearAuthStore } from '../api/authStore';
+import { userService } from '../api/userService';
 
 export const AuthContext = createContext(null);
 
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }) => {
         logout,
       });
 
-      const currentUser = await authService.getCurrentUser();
+      const currentUser = await userService.getCurrentUserProfile();
 
       tokenStorage.setUser(currentUser);
       setUser(currentUser);
@@ -172,7 +173,7 @@ export const AuthProvider = ({ children }) => {
 
 
         try {
-          const userData = await authService.getCurrentUser();
+          const userData = await userService.getCurrentUserProfile();
           setUser(userData);
           tokenStorage.setUser(userData);
         } catch (err) {
